@@ -79,7 +79,6 @@ tfoot td{font-weight:600}
 .method h3{font-size:13px;margin:12px 0 2px}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
 svg text{fill:var(--muted);font-size:10px}
-.filebox{font-size:12px;color:var(--muted)}
 .warnline{background:var(--warn-soft);color:var(--warn);border-radius:6px;padding:8px 10px;font-size:13px;margin-top:10px}
 </style>
 </head>
@@ -106,7 +105,6 @@ svg text{fill:var(--muted);font-size:10px}
       <button class="chip" data-p="2026-09-01,2026-10-31">Оба месяца</button>
     </div>
     <label>Брони «на проверке»<select id="fReview"><option value="all">учитывать все</option><option value="paid">из спорных только оплаченные</option><option value="none">не учитывать</option></select></label>
-    <label class="filebox">Загрузить свои CSV<input type="file" id="fFiles" multiple accept=".csv"></label>
   </div>
 
   <div class="page on" data-page="dash">
@@ -937,11 +935,6 @@ function initFilters() {
 initFilters();
 for (const id of ['fProp', 'fStart', 'fEnd', 'fReview']) $(id).addEventListener('input', render);
 document.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { const [a, z] = b.dataset.p.split(','); $('fStart').value = a; $('fEnd').value = z; render(); });
-$('fFiles').addEventListener('change', async ev => {
-  const raw = {...RAW};
-  for (const file of ev.target.files) { const k = file.name.replace(/\.csv$/i, ''); if (k in raw) raw[k] = await file.text(); }
-  DATA = prepare(raw); initFilters(); render();
-});
 render();
 </script>
 </body>
