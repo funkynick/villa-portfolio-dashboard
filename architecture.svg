@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 370" font-family="-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="12">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#667085"/>
+    </marker>
+  </defs>
+  <rect width="1000" height="370" fill="#ffffff"/>
+  <g font-weight="600" fill="#1d2430" font-size="13">
+    <text x="95" y="24" text-anchor="middle">1. Источники</text>
+    <text x="295" y="24" text-anchor="middle">2. Загрузка</text>
+    <text x="495" y="24" text-anchor="middle">3. Проверка и хранение</text>
+    <text x="695" y="24" text-anchor="middle">4. Расчёты</text>
+    <text x="895" y="24" text-anchor="middle">5. Dashboard</text>
+  </g>
+  <g fill="#f3f6f9" stroke="#9aa5b1">
+    <rect x="10" y="40" width="170" height="250" rx="8"/>
+    <rect x="210" y="40" width="170" height="110" rx="8"/>
+    <rect x="210" y="180" width="170" height="110" rx="8"/>
+    <rect x="410" y="40" width="170" height="55" rx="8"/>
+    <rect x="410" y="115" width="170" height="55" rx="8"/>
+    <rect x="410" y="235" width="170" height="70" rx="8"/>
+    <rect x="610" y="40" width="170" height="250" rx="8"/>
+    <rect x="810" y="40" width="170" height="110" rx="8"/>
+    <rect x="810" y="180" width="170" height="110" rx="8"/>
+  </g>
+  <rect x="455" y="320" width="125" height="40" rx="8" fill="#fbf1d6" stroke="#c9a23c"/>
+  <g fill="#1d2430">
+    <text x="24" y="70">Channel manager / OTA</text>
+    <text x="24" y="115">PMS: прямые брони</text>
+    <text x="24" y="160">Банк: выписки</text>
+    <text x="24" y="205">Учёт: расходы</text>
+    <text x="24" y="250">Договоры: ставки,</text>
+    <text x="24" y="266">собственники</text>
+
+    <text x="224" y="70" font-weight="600">Плановый импорт</text>
+    <text x="224" y="90">API или CSV</text>
+    <text x="224" y="108">по расписанию</text>
+    <text x="224" y="126" fill="#667085">n8n / Airbyte</text>
+
+    <text x="224" y="210" font-weight="600">Raw-слой</text>
+    <text x="224" y="230">данные как пришли,</text>
+    <text x="224" y="248">не меняются</text>
+    <text x="224" y="266" fill="#667085">load_id, хеш файла</text>
+
+    <text x="424" y="64" font-weight="600">Staging</text>
+    <text x="424" y="82">типы, даты, валюты</text>
+    <text x="424" y="139" font-weight="600">DQ-правила</text>
+    <text x="424" y="157">дубли, ID, суммы, даты</text>
+    <text x="424" y="259" font-weight="600">Core</text>
+    <text x="424" y="277">брони, платежи, расходы</text>
+    <text x="424" y="293" fill="#667085">версии, справочники</text>
+    <text x="466" y="337" font-weight="600">Карантин</text>
+    <text x="466" y="352" font-size="11">решает финансист</text>
+
+    <text x="624" y="70" font-weight="600">SQL / dbt</text>
+    <text x="624" y="100">ночи и доли периода</text>
+    <text x="624" y="125">комиссии по правилам</text>
+    <text x="624" y="150">OTA fee, возвраты</text>
+    <text x="624" y="175">сверка с платежами</text>
+    <text x="624" y="200">owner statement</text>
+    <text x="624" y="240" fill="#667085">одна версия расчёта</text>
+    <text x="624" y="256" fill="#667085">для всех витрин</text>
+
+    <text x="824" y="70" font-weight="600">Финансы</text>
+    <text x="824" y="90">все объекты,</text>
+    <text x="824" y="108">качество данных,</text>
+    <text x="824" y="126">сверка</text>
+    <text x="824" y="210" font-weight="600">Собственники</text>
+    <text x="824" y="230">только свои виллы,</text>
+    <text x="824" y="248">только чтение</text>
+  </g>
+  <g stroke="#667085" stroke-width="1.5" fill="none" marker-end="url(#ar)">
+    <path d="M180,165 L208,95"/>
+    <path d="M295,150 L295,178"/>
+    <path d="M380,235 Q395,235 395,150 Q395,68 408,68"/>
+    <path d="M495,95 L495,113"/>
+    <path d="M440,170 L440,233"/>
+    <path d="M550,170 L550,190 Q600,190 600,300 Q600,340 582,340"/>
+    <path d="M517,320 L517,307"/>
+    <path d="M580,270 L608,200"/>
+    <path d="M780,130 L808,95"/>
+    <path d="M780,200 L808,235"/>
+  </g>
+  <g fill="#667085" font-size="11">
+    <text x="446" y="205">ok</text>
+    <text x="556" y="210">ошибка</text>
+  </g>
+</svg>

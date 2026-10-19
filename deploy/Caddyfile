@@ -1,0 +1,21 @@
+# test.nkokov.online on the postone server.
+# Caddy of the postone project imports this file via `import /srv/sites/*/deploy/Caddyfile`;
+# the repo is cloned to /home/postone/sites/villa-portfolio-dashboard (/srv/sites/... in the container).
+# Basic auth credentials live only on the server in deploy/auth.caddy, which is not in git.
+
+test.nkokov.online {
+	import /srv/sites/villa-portfolio-dashboard/deploy/auth.caddy
+
+	root * /srv/sites/villa-portfolio-dashboard
+	encode zstd gzip
+
+	# never serve dotfiles (.git) or the deploy folder
+	@hidden path /.* /deploy/*
+	error @hidden 404
+
+	rewrite / /dashboard.html
+	header Cache-Control "no-cache"
+	header X-Robots-Tag "noindex, nofollow"
+
+	file_server
+}

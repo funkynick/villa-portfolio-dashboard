@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Villa Portfolio Dashboard</title>
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#ffffff; --ink:#1d2430; --muted:#667085; --line:#e3e7ec;
+  --accent:#2f6f9f; --accent-soft:#e3eef7; --cash:#3c8d6e; --cash-soft:#e2f2ea;
+  --bad:#b5483f; --bad-soft:#f8e5e3; --warn:#9a6a00; --warn-soft:#fbf1d6; --q:#5b5fc7; --q-soft:#ebebfb;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171c; --panel:#1c2027; --ink:#e6e9ee; --muted:#9aa3af; --line:#2c323b;
+    --accent:#6fa8d6; --accent-soft:#1f3242; --cash:#6cc29f; --cash-soft:#1c3329;
+    --bad:#e2867d; --bad-soft:#3a2321; --warn:#e0b44f; --warn-soft:#352c16; --q:#a3a6f0; --q-soft:#2a2b45;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171c; --panel:#1c2027; --ink:#e6e9ee; --muted:#9aa3af; --line:#2c323b;
+  --accent:#6fa8d6; --accent-soft:#1f3242; --cash:#6cc29f; --cash-soft:#1c3329;
+  --bad:#e2867d; --bad-soft:#3a2321; --warn:#e0b44f; --warn-soft:#352c16; --q:#a3a6f0; --q-soft:#2a2b45;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+.wrap{max-width:1240px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:20px;margin:0 0 2px}
+h2{font-size:15px;margin:0 0 10px}
+.sub{color:var(--muted);font-size:13px}
+a{color:var(--accent)}
+.bar{background:var(--bg);padding:12px 0;border-bottom:1px solid var(--line);margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:end}
+.bar label{display:flex;flex-direction:column;font-size:12px;color:var(--muted);gap:3px}
+select,input[type=date]{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+.chip{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:6px;padding:5px 10px;font:inherit;font-size:13px;cursor:pointer}
+.chip.on{background:var(--accent-soft);border-color:var(--accent)}
+.toggle{flex-direction:row!important;align-items:center;gap:6px!important;color:var(--ink)!important;font-size:13px!important}
+.grid{display:grid;gap:12px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.kpi .l{font-size:12px;color:var(--muted)}
+.kpi .v{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
+.kpi .h{font-size:11px;color:var(--muted);margin-top:4px}
+.kpi.main{border-color:var(--accent)}
+.tag{display:inline-block;font-size:11px;padding:1px 6px;border-radius:4px;font-weight:500;white-space:nowrap}
+.t-ex{background:var(--bad-soft);color:var(--bad)} .t-rv{background:var(--warn-soft);color:var(--warn)} .t-q{background:var(--q-soft);color:var(--q)} .t-ok{background:var(--cash-soft);color:var(--cash)} .t-i{background:var(--line);color:var(--muted)}
+.two{grid-template-columns:1fr 1fr} @media(max-width:860px){.two{grid-template-columns:1fr}}
+section{margin-top:18px}
+.wf .row{display:grid;grid-template-columns:170px 1fr 120px;gap:8px;align-items:center;margin:5px 0;font-size:13px}
+.wf .track{height:16px;position:relative;background:transparent}
+.wf .seg{position:absolute;top:0;height:100%;border-radius:3px}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{position:sticky;top:0;background:var(--panel);font-weight:600;color:var(--muted);font-size:11.5px;cursor:pointer;user-select:none}
+tr.excl td{opacity:.55}
+td{white-space:nowrap} td.wrap{white-space:normal;min-width:280px}
+@media(min-width:1000px){.bar{position:sticky;top:0;z-index:5}}
+tfoot td{font-weight:600}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-bottom:6px}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.note{font-size:12.5px;color:var(--muted)}
+.note code,.method code{background:var(--line);padding:0 4px;border-radius:3px;font-size:12px}
+.method p{margin:6px 0}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+svg text{fill:var(--muted);font-size:10px}
+.filebox{font-size:12px;color:var(--muted)}
+.warnline{background:var(--warn-soft);color:var(--warn);border-radius:6px;padding:8px 10px;font-size:13px;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Портфель вилл: начисления, деньги, качество данных</h1>
+  <div class="sub">Суммы в IDR. Исходные CSV вшиты в файл, всё считается в браузере при открытии. Методология и допущения внизу страницы.</div>
+  <div class="sub" style="margin-top:4px"><a href="https://github.com/funkynick/villa-portfolio-dashboard">Репозиторий и README</a> · <a href="https://docs.google.com/spreadsheets/d/10bRlTWU2wo7KbRkbOANFSbQaTnDPV2zAP-T884Ua-xg/edit?usp=sharing">Google-таблица</a> · <a href="villa_finance.xlsx">Скачать xlsx</a></div>
+
+  <div class="bar">
+    <label>Объект<select id="fProp"></select></label>
+    <label>Период с<input type="date" id="fStart" value="2026-09-01"></label>
+    <label>по<input type="date" id="fEnd" value="2026-10-31"></label>
+    <div style="display:flex;gap:6px">
+      <button class="chip" data-p="2026-09-01,2026-09-30">Сентябрь</button>
+      <button class="chip" data-p="2026-10-01,2026-10-31">Октябрь</button>
+      <button class="chip" data-p="2026-09-01,2026-10-31">Сен–Окт</button>
+    </div>
+    <label class="toggle"><input type="checkbox" id="fReview" checked> учитывать брони «на проверке»</label>
+    <label class="filebox">Загрузить свои CSV<input type="file" id="fFiles" multiple accept=".csv"></label>
+  </div>
+
+  <div class="grid kpis" id="kpis"></div>
+  <div id="reviewNote"></div>
+
+  <section class="grid two">
+    <div class="card">
+      <h2>От gross до owner balance</h2>
+      <div class="wf" id="wf"></div>
+      <div class="note" style="margin-top:8px">Owner balance — оценка: нет начального сальдо, выплат собственнику, налогов и правил удержаний по отменам.</div>
+    </div>
+    <div class="card">
+      <h2>Начислено к получению и поступило, по неделям</h2>
+      <div class="legend"><span><i class="sw" style="background:var(--accent)"></i>начислено (net − OTA, по ночам)</span><span><i class="sw" style="background:var(--cash)"></i>поступило (по дате платежа)</span></div>
+      <div id="weekly"></div>
+      <div class="note">Расхождение по неделям связано с датами (начисление идёт по ночам, а деньги приходят во время или после проживания) и с тем, что платежи есть только у половины броней.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>По объектам за период</h2>
+    <div class="tbl"><table id="tProps"></table></div>
+  </section>
+
+  <section>
+    <h2>Брони в периоде: сверка начислений и поступлений</h2>
+    <div class="tabs" id="resTabs"></div>
+    <div class="tbl" style="max-height:460px"><table id="tRes"></table></div>
+  </section>
+
+  <section>
+    <h2>Качество данных</h2>
+    <div class="note" style="margin-bottom:8px">Ничего не исправлено молча. «Исключено» — запись не попадает в расчёт. «На проверке» — попадает, но помечена (переключатель вверху показывает итог без неё). «Вопрос» — системная особенность, решение за финансами.</div>
+    <div class="tabs" id="dqTabs"></div>
+    <div class="tbl" style="max-height:460px"><table id="tDq"></table></div>
+  </section>
+
+  <section class="card method">
+    <h2>Финансовая логика</h2>
+    <p><b>Признание выручки — по ночам проживания</b>, как требует МСФО (IFRS) 15: проживание оказывается как услуга во времени. Для сравнения, по дате выезда gross сентября был бы 683 262 688 вместо 757 178 005, а 23 291 150 ушли бы в ноябрь.</p>
+    <p><b>Выручка и деньги — разные числа.</b> Начисления (accrual) привязаны к ночам проживания: доля брони в периоде = ночей в периоде / всего ночей; ночь — дата от check_in включительно до check_out не включая. Деньги (cash) считаются по payment_date. Платёж в ноябре за октябрьскую бронь в кэш октября не попадает, хотя выручка начислена.</p>
+    <p><code>Net booking = gross − refund</code> · <code>OTA fee = ota_fee × net / gross</code> · <code>Management fee = ставка × net</code> · <code>Owner balance (оценка) = net − OTA fee − management fee − расходы</code> · <code>К получению = net − OTA fee</code></p>
+    <p><b>Отмены и возвраты.</b> Все 12 отмен в данных имеют полный возврат: net = 0, management fee = 0. OTA fee по ним сторнируется пропорционально оставшейся сумме (допущение, вынесено в вопросы).</p>
+    <p><b>Комиссия УК.</b> Ставка из commission_rules по объекту и дате check_in (17%, для Bukit 20%). База — gross_booking_value: по правилу «OTA fees are separate» комиссия OTA её не уменьшает, а возврат уменьшает.</p>
+    <p><b>Расходы.</b> В начислениях все по expense_date, включая pending; в оттоке денег только paid.</p>
+    <p><b>Сверка с деньгами.</b> Платёж приходит уже за вычетом ota_fee, поэтому сравнивается с <code>net − OTA fee</code>, а не с gross. Где платёж есть, он совпадает до рупии; вся разница — брони без платежа.</p>
+    <p><b>Почему owner balance — оценка.</b> Нет начального сальдо и выплат собственнику, налогов, правил удержаний при отменах, курса валют, договорённости о том, какие расходы несёт собственник, и даты среза данных.</p>
+    <p><b>Правила качества данных.</b> Исключаются: дубли ID (остаётся первая строка), объекты, которых нет в properties, валюта не равна base_currency, возврат больше суммы или возврат при статусе confirmed. На проверке: пересечение дат на одной вилле, отрицательная ota_fee.</p>
+  </section>
+
+  <section class="card method">
+    <h2>Архитектура будущей системы</h2>
+    <svg width="100%" role="img" aria-label="Схема архитектуры" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 370" font-family="-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="12">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" style="fill:var(--muted)"/>
+    </marker>
+  </defs>
+  
+  <g font-weight="600" style="fill:var(--ink)" font-size="13">
+    <text x="95" y="24" text-anchor="middle">1. Источники</text>
+    <text x="295" y="24" text-anchor="middle">2. Загрузка</text>
+    <text x="495" y="24" text-anchor="middle">3. Проверка и хранение</text>
+    <text x="695" y="24" text-anchor="middle">4. Расчёты</text>
+    <text x="895" y="24" text-anchor="middle">5. Dashboard</text>
+  </g>
+  <g style="fill:var(--bg);stroke:var(--line)">
+    <rect x="10" y="40" width="170" height="250" rx="8"/>
+    <rect x="210" y="40" width="170" height="110" rx="8"/>
+    <rect x="210" y="180" width="170" height="110" rx="8"/>
+    <rect x="410" y="40" width="170" height="55" rx="8"/>
+    <rect x="410" y="115" width="170" height="55" rx="8"/>
+    <rect x="410" y="235" width="170" height="70" rx="8"/>
+    <rect x="610" y="40" width="170" height="250" rx="8"/>
+    <rect x="810" y="40" width="170" height="110" rx="8"/>
+    <rect x="810" y="180" width="170" height="110" rx="8"/>
+  </g>
+  <rect x="455" y="320" width="125" height="40" rx="8" style="fill:var(--warn-soft);stroke:var(--warn)"/>
+  <g style="fill:var(--ink)">
+    <text x="24" y="70">Channel manager / OTA</text>
+    <text x="24" y="115">PMS: прямые брони</text>
+    <text x="24" y="160">Банк: выписки</text>
+    <text x="24" y="205">Учёт: расходы</text>
+    <text x="24" y="250">Договоры: ставки,</text>
+    <text x="24" y="266">собственники</text>
+
+    <text x="224" y="70" font-weight="600">Плановый импорт</text>
+    <text x="224" y="90">API или CSV</text>
+    <text x="224" y="108">по расписанию</text>
+    <text x="224" y="126" style="fill:var(--muted)">n8n / Airbyte</text>
+
+    <text x="224" y="210" font-weight="600">Raw-слой</text>
+    <text x="224" y="230">данные как пришли,</text>
+    <text x="224" y="248">не меняются</text>
+    <text x="224" y="266" style="fill:var(--muted)">load_id, хеш файла</text>
+
+    <text x="424" y="64" font-weight="600">Staging</text>
+    <text x="424" y="82">типы, даты, валюты</text>
+    <text x="424" y="139" font-weight="600">DQ-правила</text>
+    <text x="424" y="157">дубли, ID, суммы, даты</text>
+    <text x="424" y="259" font-weight="600">Core</text>
+    <text x="424" y="277">брони, платежи, расходы</text>
+    <text x="424" y="293" style="fill:var(--muted)">версии, справочники</text>
+    <text x="466" y="337" font-weight="600">Карантин</text>
+    <text x="466" y="352" font-size="11">решает финансист</text>
+
+    <text x="624" y="70" font-weight="600">SQL / dbt</text>
+    <text x="624" y="100">ночи и доли периода</text>
+    <text x="624" y="125">комиссии по правилам</text>
+    <text x="624" y="150">OTA fee, возвраты</text>
+    <text x="624" y="175">сверка с платежами</text>
+    <text x="624" y="200">owner statement</text>
+    <text x="624" y="240" style="fill:var(--muted)">одна версия расчёта</text>
+    <text x="624" y="256" style="fill:var(--muted)">для всех витрин</text>
+
+    <text x="824" y="70" font-weight="600">Финансы</text>
+    <text x="824" y="90">все объекты,</text>
+    <text x="824" y="108">качество данных,</text>
+    <text x="824" y="126">сверка</text>
+    <text x="824" y="210" font-weight="600">Собственники</text>
+    <text x="824" y="230">только свои виллы,</text>
+    <text x="824" y="248">только чтение</text>
+  </g>
+  <g style="stroke:var(--muted)" stroke-width="1.5" fill="none" marker-end="url(#arr)">
+    <path d="M180,165 L208,95"/>
+    <path d="M295,150 L295,178"/>
+    <path d="M380,235 Q395,235 395,150 Q395,68 408,68"/>
+    <path d="M495,95 L495,113"/>
+    <path d="M440,170 L440,233"/>
+    <path d="M550,170 L550,190 Q600,190 600,300 Q600,340 582,340"/>
+    <path d="M517,320 L517,307"/>
+    <path d="M580,270 L608,200"/>
+    <path d="M780,130 L808,95"/>
+    <path d="M780,200 L808,235"/>
+  </g>
+  <g style="fill:var(--muted)" font-size="11">
+    <text x="446" y="205">ok</text>
+    <text x="556" y="210">ошибка</text>
+  </g>
+</svg>
+
+    <p><b>Повторный импорт без дублей.</b> Файл с тем же хешем содержимого не грузится повторно. В core запись определяется ключом (<code>source + reservation_id</code>, <code>payment_id</code>, <code>expense_id</code>) и пишется через upsert: более поздний updated_at создаёт новую версию, идентичная строка игнорируется.</p>
+    <p><b>Аудит изменений.</b> Raw не меняется и не удаляется. У строк в core есть load_id, valid_from и valid_to, поэтому можно восстановить данные на любую дату. Исправления вносятся отдельными корректировками с автором и причиной. Решения по карантину пишутся в журнал, закрытый месяц блокируется.</p>
+    <p><b>Разграничение доступа.</b> Финансы видят всё и решают по карантину. Операционная команда видит брони и расходы без итогов собственников. Собственник видит только свои виллы через row-level security по owner_id. Загрузка работает под сервисной учётной записью, ключи хранятся в secret manager.</p>
+  </section>
+
+  <section class="note" style="margin-top:14px">Прототип в рамках тестового задания на 2–3 часа: рабочее ядро расчёта, диагностика данных и схема дальнейшей системы. Ограничения, риски и следующие шаги описаны в README.</section>
+</div>
+
+<script id="d-properties" type="text/csv">
+property_id,property_name,cluster,owner_id,base_currency
+V001,Villa 01,Ubud,O001,IDR
+V002,Villa 02,Canggu,O002,IDR
+V003,Villa 03,Sanur,O003,IDR
+V004,Villa 04,Bukit,O004,IDR
+V005,Villa 05,Ubud,O005,IDR
+V006,Villa 06,Canggu,O006,IDR
+V007,Villa 07,Sanur,O007,IDR
+V008,Villa 08,Bukit,O008,IDR
+V009,Villa 09,Ubud,O009,IDR
+V010,Villa 10,Canggu,O010,IDR
+V011,Villa 11,Sanur,O011,IDR
+V012,Villa 12,Bukit,O012,IDR
+V013,Villa 13,Ubud,O013,IDR
+V014,Villa 14,Canggu,O014,IDR
+V015,Villa 15,Sanur,O015,IDR
+V016,Villa 16,Bukit,O016,IDR
+V017,Villa 17,Ubud,O017,IDR
+V018,Villa 18,Canggu,O018,IDR
+V019,Villa 19,Sanur,O019,IDR
+V020,Villa 20,Bukit,O020,IDR
+</script>
+<script id="d-reservations" type="text/csv">
+reservation_id,property_id,check_in,check_out,status,gross_booking_value,currency,ota_fee,refund_amount,channel,updated_at
+R0001,V013,2026-09-22,2026-09-25,confirmed,5285633,IDR,792845,0,OTA,2026-09-15
+R0002,V019,2026-10-15,2026-10-19,confirmed,11778798,IDR,1766820,0,OTA,2026-09-15
+R0003,V013,2026-10-25,2026-11-01,confirmed,12170856,IDR,1460503,0,OTA,2026-09-15
+R0004,V008,2026-10-13,2026-10-21,confirmed,2807588,IDR,421138,0,OTA,2026-09-15
+R0005,V005,2026-09-10,2026-09-17,confirmed,7849988,IDR,941999,0,Direct,2026-09-15
+R0006,V009,2026-10-12,2026-10-19,confirmed,12914850,IDR,2195524,0,OTA,2026-09-15
+R0007,V002,2026-09-08,2026-09-16,confirmed,12360903,IDR,1483308,0,OTA,2026-09-15
+R0008,V014,2026-10-26,2026-10-30,confirmed,14828403,IDR,1779408,0,OTA,2026-09-15
+R0009,V003,2026-10-17,2026-10-21,confirmed,14786628,IDR,2217994,0,OTA,2026-09-15
+R0010,V005,2026-10-06,2026-10-13,confirmed,2811012,IDR,337321,0,Direct,2026-09-15
+R0011,V004,2026-09-10,2026-09-17,confirmed,5482028,IDR,657843,0,OTA,2026-09-15
+R0012,V009,2026-09-21,2026-09-24,confirmed,12900194,IDR,1548023,0,OTA,2026-09-15
+R0013,V020,2026-10-07,2026-10-10,confirmed,9796359,IDR,1175563,0,OTA,2026-09-15
+R0014,V010,2026-09-26,2026-09-29,confirmed,4290322,IDR,729355,0,OTA,2026-09-15
+R0015,V003,2026-09-27,2026-09-29,confirmed,13628994,IDR,2316929,0,Direct,2026-09-15
+R0016,V016,2026-10-26,2026-10-31,confirmed,6365525,IDR,763863,0,OTA,2026-09-15
+R0017,V003,2026-09-09,2026-09-11,confirmed,10190964,IDR,1732464,0,OTA,2026-09-15
+R0018,V013,2026-09-28,2026-10-04,confirmed,14989658,IDR,2248449,0,OTA,2026-09-15
+R0019,V018,2026-09-02,2026-09-04,confirmed,13491067,IDR,2023660,0,OTA,2026-09-15
+R0020,V011,2026-09-12,2026-09-15,confirmed,3602767,IDR,612470,0,Direct,2026-09-15
+R0021,V002,2026-10-17,2026-10-25,confirmed,13943005,IDR,1673161,0,OTA,2026-09-15
+R0022,V005,2026-09-27,2026-10-04,confirmed,14409482,IDR,2449612,0,OTA,2026-09-15
+R0023,V003,2026-10-09,2026-10-15,confirmed,9519266,IDR,1618275,0,OTA,2026-09-15
+R0024,V004,2026-09-16,2026-09-19,confirmed,9838148,IDR,1475722,0,OTA,2026-09-15
+R0025,V015,2026-10-14,2026-10-21,confirmed,9388940,IDR,1408341,0,Direct,2026-09-15
+R0026,V003,2026-10-13,2026-10-17,confirmed,11595421,IDR,1391451,0,OTA,2026-09-15
+R0027,V008,2026-09-18,2026-09-23,confirmed,14311944,IDR,2146792,0,OTA,2026-09-15
+R0028,V020,2026-09-25,2026-10-03,confirmed,7444951,IDR,1116743,0,OTA,2026-09-15
+R0029,V003,2026-09-14,2026-09-20,confirmed,5255702,IDR,630684,0,OTA,2026-09-15
+R0030,V001,2026-09-15,2026-09-18,confirmed,10364904,IDR,1762034,0,Direct,2026-09-15
+R0031,V008,2026-09-05,2026-09-08,confirmed,11687955,IDR,1986952,0,OTA,2026-09-15
+R0032,V020,2026-09-10,2026-09-15,confirmed,8020880,IDR,962506,0,OTA,2026-09-15
+R0033,V008,2026-09-25,2026-10-02,confirmed,14606373,IDR,1752765,0,OTA,2026-09-15
+R0034,V999,2026-10-09,2026-10-16,confirmed,14462943,IDR,1735553,0,OTA,2026-09-15
+R0035,V018,2026-10-20,2026-10-25,confirmed,9089264,IDR,1363390,0,Direct,2026-09-15
+R0036,V009,2026-10-23,2026-10-27,confirmed,3000696,IDR,360084,0,OTA,2026-09-15
+R0037,V019,2026-10-16,2026-10-19,confirmed,13209000,IDR,1585080,0,OTA,2026-09-15
+R0038,V017,2026-10-04,2026-10-11,confirmed,5469713,IDR,820457,0,OTA,2026-09-15
+R0039,V003,2026-09-03,2026-09-09,confirmed,13681939,IDR,2325930,0,OTA,2026-09-15
+R0040,V012,2026-09-14,2026-09-21,confirmed,9199023,IDR,1379853,0,Direct,2026-09-15
+R0041,V010,2026-09-10,2026-09-14,confirmed,8870514,IDR,1507987,0,OTA,2026-09-15
+R0042,V008,2026-10-24,2026-10-26,confirmed,14355006,IDR,2153251,0,OTA,2026-09-15
+R0043,V020,2026-10-08,2026-10-13,confirmed,7587282,IDR,1138092,0,OTA,2026-09-15
+R0044,V016,2026-10-15,2026-10-23,confirmed,6510552,IDR,781266,0,OTA,2026-09-15
+R0045,V017,2026-10-01,2026-10-07,confirmed,9902337,IDR,1188280,0,Direct,2026-09-15
+R0046,V016,2026-09-12,2026-09-17,confirmed,7389375,IDR,886725,0,OTA,2026-09-15
+R0047,V008,2026-10-02,2026-10-07,confirmed,12050287,IDR,1807543,0,OTA,2026-09-15
+R0048,V002,2026-10-10,2026-10-18,confirmed,14520103,IDR,2468418,0,OTA,2026-09-15
+R0049,V018,2026-09-02,2026-09-10,confirmed,13076960,IDR,1569235,0,OTA,2026-09-15
+R0050,V014,2026-10-22,2026-10-27,confirmed,7909795,IDR,1186469,0,Direct,2026-09-15
+R0051,V019,2026-09-12,2026-09-17,confirmed,2774229,IDR,332907,0,OTA,2026-09-15
+R0052,V006,2026-10-26,2026-11-01,confirmed,11120294,IDR,1668044,0,OTA,2026-09-15
+R0053,V005,2026-09-02,2026-09-09,confirmed,12400930,IDR,2108158,0,OTA,2026-09-15
+R0054,V013,2026-09-02,2026-09-05,confirmed,7045271,IDR,1197696,0,OTA,2026-09-15
+R0055,V001,2026-10-06,2026-10-14,confirmed,11317071,IDR,1923902,0,Direct,2026-09-15
+R0056,V008,2026-09-25,2026-10-02,confirmed,5624162,IDR,674899,0,OTA,2026-09-15
+R0057,V017,2026-09-21,2026-09-27,confirmed,11061328,IDR,1880426,0,OTA,2026-09-15
+R0058,V006,2026-10-02,2026-10-04,confirmed,12026763,IDR,2044550,0,OTA,2026-09-15
+R0059,V002,2026-09-13,2026-09-17,confirmed,5529743,IDR,829461,0,OTA,2026-09-15
+R0060,V016,2026-09-06,2026-09-14,confirmed,13551414,IDR,2032712,0,Direct,2026-09-15
+R0061,V001,2026-10-16,2026-10-20,confirmed,4280874,USD,642131,0,OTA,2026-09-15
+R0062,V013,2026-10-22,2026-10-24,confirmed,11635679,IDR,1745352,0,OTA,2026-09-15
+R0063,V015,2026-10-19,2026-10-26,confirmed,8744980,IDR,1486647,0,OTA,2026-09-15
+R0064,V006,2026-09-06,2026-09-08,confirmed,8718000,IDR,1307700,0,OTA,2026-09-15
+R0065,V012,2026-09-11,2026-09-19,confirmed,10171643,IDR,1220597,0,Direct,2026-09-15
+R0066,V009,2026-09-11,2026-09-13,confirmed,3594864,IDR,431384,0,OTA,2026-09-15
+R0067,V011,2026-09-20,2026-09-24,confirmed,7924759,IDR,950971,0,OTA,2026-09-15
+R0068,V007,2026-09-04,2026-09-09,confirmed,14107676,IDR,1692921,0,OTA,2026-09-15
+R0069,V001,2026-09-10,2026-09-17,confirmed,7120768,IDR,1210531,0,OTA,2026-09-15
+R0070,V009,2026-09-23,2026-09-26,confirmed,10425210,IDR,1772286,0,Direct,2026-09-15
+R0071,V013,2026-10-01,2026-10-08,confirmed,6736226,IDR,1145158,0,OTA,2026-09-15
+R0072,V020,2026-10-05,2026-10-12,confirmed,7070068,IDR,1201912,7970068,OTA,2026-09-15
+R0073,V006,2026-09-16,2026-09-24,confirmed,2927999,IDR,439200,0,OTA,2026-09-15
+R0074,V017,2026-09-04,2026-09-07,confirmed,13655603,IDR,2048340,0,OTA,2026-09-15
+R0075,V010,2026-09-19,2026-09-23,confirmed,7403313,IDR,1110497,0,Direct,2026-09-15
+R0076,V010,2026-09-06,2026-09-08,confirmed,6934671,IDR,1178894,0,OTA,2026-09-15
+R0077,V010,2026-09-10,2026-09-15,confirmed,11635626,IDR,1978056,0,OTA,2026-09-15
+R0078,V001,2026-09-24,2026-10-01,confirmed,6420203,IDR,963030,0,OTA,2026-09-15
+R0079,V014,2026-10-09,2026-10-16,confirmed,10052318,IDR,1507848,0,OTA,2026-09-15
+R0080,V008,2026-09-03,2026-09-11,confirmed,5900495,IDR,708059,0,Direct,2026-09-15
+R0081,V010,2026-10-10,2026-10-14,confirmed,2856094,IDR,342731,0,OTA,2026-09-15
+R0082,V016,2026-09-27,2026-10-04,confirmed,3978391,IDR,676326,0,OTA,2026-09-15
+R0083,V019,2026-10-06,2026-10-11,confirmed,12934571,IDR,1552149,0,OTA,2026-09-15
+R0084,V004,2026-10-11,2026-10-16,confirmed,10172439,IDR,1729315,0,OTA,2026-09-15
+R0085,V003,2026-10-06,2026-10-13,confirmed,14058734,IDR,1687048,0,Direct,2026-09-15
+R0086,V001,2026-09-06,2026-09-13,confirmed,12024847,IDR,1803727,0,OTA,2026-09-15
+R0087,V015,2026-09-28,2026-10-03,confirmed,7036912,IDR,844429,0,OTA,2026-09-15
+R0088,V005,2026-10-10,2026-10-18,confirmed,12860413,IDR,2186270,0,OTA,2026-09-15
+R0089,V003,2026-10-23,2026-10-31,confirmed,11516075,IDR,1727411,0,OTA,2026-09-15
+R0090,V013,2026-09-23,2026-09-28,confirmed,5851243,IDR,877686,0,Direct,2026-09-15
+R0091,V019,2026-09-06,2026-09-14,confirmed,11220483,IDR,1907482,0,OTA,2026-10-15
+R0092,V017,2026-09-11,2026-09-18,confirmed,14123451,IDR,2118518,0,OTA,2026-10-15
+R0093,V007,2026-09-12,2026-09-19,confirmed,7023077,IDR,1053462,0,OTA,2026-10-15
+R0094,V016,2026-10-02,2026-10-09,confirmed,3980954,IDR,477714,0,OTA,2026-10-15
+R0095,V017,2026-09-15,2026-09-18,confirmed,2936935,IDR,499279,0,Direct,2026-10-15
+R0096,V003,2026-09-06,2026-09-14,confirmed,7008445,IDR,1051267,0,OTA,2026-10-15
+R0097,V008,2026-10-26,2026-10-29,confirmed,4660661,IDR,699099,0,OTA,2026-10-15
+R0098,V005,2026-09-11,2026-09-15,confirmed,12291981,IDR,1475038,0,OTA,2026-10-15
+R0099,V016,2026-09-06,2026-09-08,confirmed,3723650,IDR,633020,0,OTA,2026-10-15
+R0100,V004,2026-10-21,2026-10-25,confirmed,13367197,IDR,1604064,0,Direct,2026-10-15
+R0101,V003,2026-09-13,2026-09-17,confirmed,8619671,IDR,1034361,0,OTA,2026-10-15
+R0102,V003,2026-09-10,2026-09-14,confirmed,3898667,IDR,-100000,0,OTA,2026-10-15
+R0103,V003,2026-09-12,2026-09-19,confirmed,10177318,IDR,1221278,0,OTA,2026-10-15
+R0104,V018,2026-09-14,2026-09-18,confirmed,10518605,IDR,1262233,0,OTA,2026-10-15
+R0105,V010,2026-09-06,2026-09-10,confirmed,11047098,IDR,1657065,0,Direct,2026-10-15
+R0106,V016,2026-09-23,2026-09-28,confirmed,10546533,IDR,1581980,0,OTA,2026-10-15
+R0107,V013,2026-10-10,2026-10-18,confirmed,7599707,IDR,911965,0,OTA,2026-10-15
+R0108,V004,2026-09-02,2026-09-07,confirmed,5042731,IDR,756410,0,OTA,2026-10-15
+R0109,V014,2026-10-01,2026-10-06,confirmed,5074082,IDR,761112,0,OTA,2026-10-15
+R0110,V011,2026-09-15,2026-09-17,confirmed,8309300,IDR,997116,0,Direct,2026-10-15
+R0111,V004,2026-10-05,2026-10-09,confirmed,7332347,IDR,1099852,0,OTA,2026-10-15
+R0112,V008,2026-09-22,2026-09-25,confirmed,2598850,IDR,441805,0,OTA,2026-10-15
+R0113,V020,2026-10-04,2026-10-09,confirmed,13741443,IDR,2336045,0,OTA,2026-10-15
+R0114,V019,2026-09-28,2026-09-30,confirmed,12466040,IDR,2119227,0,OTA,2026-10-15
+R0115,V017,2026-09-30,2026-10-03,confirmed,14920013,IDR,1790402,0,Direct,2026-10-15
+R0116,V020,2026-09-28,2026-10-01,confirmed,9314803,IDR,1583517,0,OTA,2026-10-15
+R0117,V005,2026-10-06,2026-10-08,confirmed,2795956,IDR,419393,0,OTA,2026-10-15
+R0118,V020,2026-09-16,2026-09-19,confirmed,9350484,IDR,1402573,0,OTA,2026-10-15
+R0119,V013,2026-09-16,2026-09-23,confirmed,9471742,IDR,1420761,0,OTA,2026-10-15
+R0120,V010,2026-09-18,2026-09-23,confirmed,3066379,IDR,459957,0,Direct,2026-10-15
+R0121,V010,2026-09-13,2026-09-17,confirmed,5609704,IDR,953650,0,OTA,2026-10-15
+R0122,V020,2026-10-11,2026-10-14,confirmed,3069750,IDR,460462,0,OTA,2026-10-15
+R0123,V019,2026-10-24,2026-10-29,confirmed,14281886,IDR,1713826,0,OTA,2026-10-15
+R0124,V016,2026-09-04,2026-09-10,confirmed,12543291,IDR,1881494,0,OTA,2026-10-15
+R0125,V014,2026-09-18,2026-09-21,confirmed,13753716,IDR,2338132,0,Direct,2026-10-15
+R0126,V015,2026-09-09,2026-09-14,confirmed,9733373,IDR,1168005,0,OTA,2026-10-15
+R0127,V008,2026-10-22,2026-10-27,confirmed,10971378,IDR,1316565,0,OTA,2026-10-15
+R0128,V003,2026-09-13,2026-09-16,confirmed,7664910,IDR,919789,0,OTA,2026-10-15
+R0129,V002,2026-10-13,2026-10-17,confirmed,13602857,IDR,2312486,0,OTA,2026-10-15
+R0130,V020,2026-10-04,2026-10-06,confirmed,12463059,IDR,1869459,0,Direct,2026-10-15
+R0131,V015,2026-09-22,2026-09-30,cancelled,6699678,IDR,1004952,6699678,OTA,2026-10-15
+R0132,V012,2026-10-25,2026-10-28,cancelled,3674759,IDR,624709,3674759,OTA,2026-10-15
+R0133,V007,2026-09-02,2026-09-04,cancelled,9771291,IDR,1661119,9771291,OTA,2026-10-15
+R0134,V013,2026-09-01,2026-09-09,cancelled,3910340,IDR,664758,3910340,OTA,2026-10-15
+R0135,V015,2026-09-09,2026-09-11,cancelled,11433870,IDR,1943758,11433870,Direct,2026-10-15
+R0136,V020,2026-10-17,2026-10-24,cancelled,11056387,IDR,1326766,11056387,OTA,2026-10-15
+R0137,V016,2026-10-13,2026-10-18,cancelled,3333329,IDR,566666,3333329,OTA,2026-10-15
+R0138,V004,2026-09-06,2026-09-13,cancelled,4714658,IDR,707199,4714658,OTA,2026-10-15
+R0139,V007,2026-10-10,2026-10-13,cancelled,13988963,IDR,1678676,13988963,OTA,2026-10-15
+R0140,V004,2026-10-16,2026-10-24,cancelled,9010497,IDR,1081260,9010497,Direct,2026-10-15
+R0141,V006,2026-09-04,2026-09-12,cancelled,4048571,IDR,485829,4048571,OTA,2026-10-15
+R0142,V002,2026-10-05,2026-10-07,cancelled,4521170,IDR,678176,4521170,OTA,2026-10-15
+R0143,V011,2026-09-05,2026-09-11,modified,6955058,IDR,1043259,0,OTA,2026-10-15
+R0144,V002,2026-10-26,2026-10-29,modified,8371057,IDR,1255659,0,OTA,2026-10-15
+R0145,V015,2026-09-08,2026-09-13,modified,9974242,IDR,1496136,0,Direct,2026-10-15
+R0146,V008,2026-09-19,2026-09-24,modified,2521489,IDR,302579,0,OTA,2026-10-15
+R0147,V002,2026-09-28,2026-10-03,modified,13430783,IDR,2283233,0,OTA,2026-10-15
+R0148,V017,2026-10-04,2026-10-09,modified,8136835,IDR,976420,0,OTA,2026-10-15
+R0149,V009,2026-09-02,2026-09-09,modified,14235106,IDR,2419968,0,OTA,2026-10-15
+R0150,V009,2026-09-01,2026-09-09,modified,14712115,IDR,2501060,0,Direct,2026-10-15
+R0015,V003,2026-09-27,2026-09-29,confirmed,13628994,IDR,2316929,0,Direct,2026-09-15
+</script>
+<script id="d-payments" type="text/csv">
+payment_id,reservation_id,property_id,payment_date,amount,currency,status
+P0001,R0002,V019,2026-10-19,10011978,IDR,received
+P0002,R0004,V008,2026-10-16,2386450,IDR,received
+P0003,R0006,V009,2026-10-22,10719326,IDR,received
+P0004,R0008,V014,2026-11-01,13048995,IDR,received
+P0005,R0010,V005,2026-10-17,2473691,IDR,received
+P0006,R0012,V009,2026-09-30,11352171,IDR,received
+P0007,R0014,V010,2026-10-01,3560967,IDR,received
+P0008,R0016,V016,2026-11-05,5601662,IDR,received
+P0009,R0018,V013,2026-10-05,12741209,IDR,received
+P0010,R0020,V011,2026-09-19,2990297,IDR,received
+P0011,R0022,V005,2026-10-06,11959870,IDR,received
+P0012,R0024,V004,2026-09-27,8362426,IDR,received
+P0013,R0026,V003,2026-10-17,10203970,IDR,received
+P0014,R0028,V020,2026-09-26,6328208,IDR,received
+P0015,R0030,V001,2026-09-21,8602870,IDR,received
+P0016,R0032,V020,2026-09-10,7058374,IDR,received
+P0017,R0034,V999,2026-10-20,12727390,IDR,received
+P0018,R0036,V009,2026-10-30,2640612,IDR,received
+P0019,R0038,V017,2026-10-15,4649256,IDR,received
+P0020,R0040,V012,2026-09-15,7819170,IDR,received
+P0021,R0042,V008,2026-10-28,12201755,IDR,received
+P0022,R0044,V016,2026-10-16,5729286,IDR,received
+P0023,R0046,V016,2026-09-12,6502650,IDR,received
+P0024,R0048,V002,2026-10-20,12051685,IDR,received
+P0025,R0050,V014,2026-10-22,6723326,IDR,received
+P0026,R0052,V006,2026-10-26,9452250,IDR,received
+P0027,R0054,V013,2026-09-12,5847575,IDR,received
+P0028,R0056,V008,2026-10-03,4949263,IDR,received
+P0029,R0058,V006,2026-10-02,9982213,IDR,received
+P0030,R0060,V016,2026-09-09,11518702,IDR,received
+P0031,R0062,V013,2026-10-24,9890327,IDR,received
+P0032,R0064,V006,2026-09-06,7410300,IDR,received
+P0033,R0066,V009,2026-09-14,3163480,IDR,received
+P0034,R0068,V007,2026-09-12,12414755,IDR,received
+P0035,R0070,V009,2026-09-23,8652924,IDR,received
+P0036,R0072,V020,2026-10-13,0,IDR,received
+P0037,R0074,V017,2026-09-12,11607263,IDR,received
+P0038,R0076,V010,2026-09-10,5755777,IDR,received
+P0039,R0078,V001,2026-10-01,5457173,IDR,received
+P0040,R0080,V008,2026-09-13,5192436,IDR,received
+P0041,R0082,V016,2026-09-28,3302065,IDR,received
+P0042,R0084,V004,2026-10-21,8443124,IDR,received
+P0043,R0086,V001,2026-09-16,10221120,IDR,received
+P0044,R0088,V005,2026-10-16,10674143,IDR,received
+P0045,R0090,V013,2026-09-29,4973557,IDR,received
+P0046,R0092,V017,2026-09-16,12004933,IDR,received
+P0047,R0094,V016,2026-10-05,3503240,IDR,received
+P0048,R0096,V003,2026-09-07,5957178,IDR,received
+P0049,R0098,V005,2026-09-19,10816943,IDR,received
+P0050,R0100,V004,2026-10-22,11763133,IDR,received
+P0051,R0102,V003,2026-09-12,3998667,IDR,received
+P0052,R0104,V018,2026-09-19,9256372,IDR,received
+P0053,R0106,V016,2026-10-02,8964553,IDR,received
+P0054,R0108,V004,2026-09-06,4286321,IDR,received
+P0055,R0110,V011,2026-09-20,7312184,IDR,received
+P0056,R0112,V008,2026-09-29,2157045,IDR,received
+P0057,R0114,V019,2026-10-02,10346813,IDR,received
+P0058,R0116,V020,2026-09-28,7731286,IDR,received
+P0059,R0118,V020,2026-09-18,7947911,IDR,received
+P0060,R0120,V010,2026-09-22,2606422,IDR,received
+P0061,R0122,V020,2026-10-22,2609288,IDR,received
+P0062,R0124,V016,2026-09-10,10661797,IDR,received
+P0063,R0126,V015,2026-09-09,8565368,IDR,received
+P0064,R0128,V003,2026-09-24,6745121,IDR,received
+P0065,R0130,V020,2026-10-15,10593600,IDR,received
+P0066,R0132,V012,2026-10-25,0,IDR,received
+P0067,R0134,V013,2026-09-08,0,IDR,received
+P0068,R0136,V020,2026-10-22,0,IDR,received
+P0069,R0138,V004,2026-09-11,0,IDR,received
+P0070,R0140,V004,2026-10-27,0,IDR,received
+P0071,R0142,V002,2026-10-10,0,IDR,received
+P0072,R0144,V002,2026-11-04,7115398,IDR,received
+P0073,R0146,V008,2026-09-20,2218910,IDR,received
+P0074,R0148,V017,2026-10-05,7160415,IDR,received
+P0075,R0150,V009,2026-09-07,12211055,IDR,received
+P0075,R0150,V009,2026-09-07,12211055,IDR,received
+</script>
+<script id="d-expenses" type="text/csv">
+expense_id,property_id,expense_date,category,amount,currency,payment_status
+E0001,V019,2026-10-11,Supplies,728127,IDR,paid
+E0002,V005,2026-10-30,Electricity,870049,IDR,paid
+E0003,V020,2026-09-12,Maintenance,544001,IDR,paid
+E0004,V006,2026-10-03,Maintenance,580499,IDR,paid
+E0005,V007,2026-09-05,Cleaning,231018,IDR,paid
+E0006,V009,2026-09-10,Maintenance,545475,IDR,pending
+E0007,V004,2026-10-12,Electricity,375795,IDR,paid
+E0008,V017,2026-09-15,Cleaning,562073,IDR,paid
+E0009,V006,2026-10-19,Electricity,707969,IDR,paid
+E0010,V015,2026-10-22,Electricity,887896,IDR,paid
+E0011,V020,2026-10-31,Supplies,128279,IDR,paid
+E0012,V004,2026-09-28,Maintenance,785856,IDR,pending
+E0013,V018,2026-10-17,Electricity,889733,IDR,paid
+E0014,V001,2026-10-28,Cleaning,641962,IDR,paid
+E0015,V012,2026-09-02,Electricity,561600,IDR,paid
+E0016,V011,2026-10-18,Electricity,274425,IDR,paid
+E0017,V777,2026-10-21,Maintenance,834779,IDR,paid
+E0018,V011,2026-09-06,Electricity,778388,IDR,pending
+E0019,V008,2026-09-13,Cleaning,896795,IDR,paid
+E0020,V005,2026-10-24,Maintenance,484966,IDR,paid
+E0021,V009,2026-10-23,Electricity,300567,IDR,paid
+E0022,V012,2026-10-07,Maintenance,491719,IDR,paid
+E0023,V017,2026-10-25,Cleaning,380091,IDR,paid
+E0024,V015,2026-10-02,Electricity,93518,IDR,pending
+E0025,V013,2026-10-17,Cleaning,901281,IDR,paid
+E0026,V012,2026-10-04,Cleaning,817967,IDR,paid
+E0027,V015,2026-10-11,Supplies,631088,IDR,paid
+E0028,V001,2026-10-09,Cleaning,656683,IDR,paid
+E0029,V013,2026-10-06,Cleaning,184778,IDR,paid
+E0030,V010,2026-09-05,Maintenance,158367,IDR,pending
+E0031,V009,2026-10-31,Maintenance,745206,IDR,paid
+E0032,V007,2026-10-31,Maintenance,527533,IDR,paid
+E0033,V016,2026-09-29,Cleaning,350670,IDR,paid
+E0034,V019,2026-10-28,Cleaning,369039,IDR,paid
+E0035,V008,2026-09-10,Maintenance,514004,IDR,paid
+E0036,V012,2026-10-02,Maintenance,651176,IDR,pending
+E0037,V013,2026-09-10,Maintenance,812609,IDR,paid
+E0038,V004,2026-10-25,Maintenance,689706,IDR,paid
+E0039,V009,2026-09-05,Supplies,459629,IDR,paid
+E0040,V001,2026-10-15,Supplies,947877,IDR,paid
+E0041,V007,2026-10-13,Electricity,876730,IDR,paid
+E0042,V003,2026-09-01,Cleaning,751988,IDR,pending
+E0043,V002,2026-10-08,Supplies,295224,IDR,paid
+E0044,V015,2026-09-23,Maintenance,364406,IDR,paid
+E0045,V018,2026-10-27,Maintenance,914432,IDR,paid
+E0046,V016,2026-10-25,Supplies,786454,IDR,paid
+E0047,V013,2026-10-16,Maintenance,518259,IDR,paid
+E0048,V003,2026-09-20,Supplies,359904,IDR,pending
+E0049,V001,2026-09-15,Maintenance,528641,IDR,paid
+E0050,V012,2026-09-25,Cleaning,608358,IDR,paid
+E0051,V013,2026-09-15,Supplies,316509,IDR,paid
+E0052,V019,2026-10-26,Cleaning,473327,IDR,paid
+E0053,V015,2026-10-31,Electricity,156509,IDR,paid
+E0054,V005,2026-10-25,Maintenance,710144,IDR,pending
+E0055,V019,2026-10-22,Maintenance,855120,IDR,paid
+E0056,V003,2026-10-15,Maintenance,416840,IDR,paid
+E0057,V011,2026-09-29,Supplies,325200,IDR,paid
+E0058,V012,2026-09-11,Maintenance,549211,IDR,paid
+E0059,V001,2026-09-27,Electricity,301833,IDR,paid
+E0060,V010,2026-09-25,Cleaning,818748,IDR,pending
+E0061,V010,2026-10-21,Supplies,319792,IDR,paid
+E0062,V014,2026-09-27,Electricity,776865,IDR,paid
+E0063,V001,2026-10-17,Maintenance,157697,IDR,paid
+E0064,V007,2026-09-09,Maintenance,904238,IDR,paid
+E0065,V013,2026-10-11,Supplies,260684,IDR,paid
+E0066,V015,2026-09-12,Electricity,921354,IDR,pending
+E0067,V006,2026-09-08,Electricity,471944,IDR,paid
+E0068,V017,2026-09-14,Supplies,558231,IDR,paid
+E0069,V020,2026-10-21,Maintenance,916855,IDR,paid
+E0070,V019,2026-10-19,Cleaning,106300,IDR,paid
+E0071,V004,2026-09-19,Electricity,848171,IDR,paid
+E0072,V011,2026-10-19,Maintenance,238459,IDR,pending
+E0073,V020,2026-10-02,Supplies,714424,IDR,paid
+E0074,V004,2026-09-15,Supplies,675551,IDR,paid
+E0075,V013,2026-10-30,Supplies,494284,IDR,paid
+E0076,V002,2026-09-18,Supplies,419338,IDR,paid
+E0077,V020,2026-09-08,Maintenance,600870,IDR,paid
+E0078,V017,2026-10-29,Supplies,548218,IDR,pending
+E0079,V003,2026-09-05,Supplies,556831,IDR,paid
+E0080,V008,2026-09-14,Cleaning,937198,IDR,paid
+E0081,V014,2026-10-31,Maintenance,87787,IDR,paid
+E0082,V004,2026-10-28,Cleaning,688866,IDR,paid
+E0083,V014,2026-10-30,Supplies,356682,IDR,paid
+E0084,V003,2026-09-19,Cleaning,263491,IDR,pending
+E0085,V008,2026-10-11,Cleaning,692743,IDR,paid
+E0086,V003,2026-09-22,Cleaning,247777,IDR,paid
+E0087,V005,2026-09-21,Electricity,625961,IDR,paid
+E0088,V006,2026-09-25,Maintenance,855734,IDR,paid
+E0089,V010,2026-10-01,Supplies,371953,IDR,paid
+E0090,V013,2026-09-24,Electricity,757492,IDR,pending
+</script>
+<script id="d-commission_rules" type="text/csv">
+property_id,effective_from,effective_to,management_fee_rate,fee_basis,note
+V001,2026-09-01,2026-12-31,0.17,gross_booking_value,OTA fees are separate
+V002,2026-09-01,2026-12-31,0.17,gross_booking_value,OTA fees are separate
+V003,2026-09-01,2026-12-31,0.17,gross_booking_value,OTA fees are separate
+V004,2026-09-01,2026-12-31,0.2,gross_booking_value,OTA fees are separate
+V005,2026-09-01,2026-12-31,0.17,gross_booking_value,OTA fees are separate
+V006,2026-09-01,2026-12-31,0.17,gross_booking_value,OTA fees are separate
+V007,2026-09-01,2026-12-31,0.17,gross_booking_value,OTA fees are separate
+V008,2026-09-01,2026-12-31,0.2,gross_booking_value,OTA fees are separate
+V009,2026-09-01,2026-12-31,0.17,gross_booking_value,OTA fees are separate
+V010,2026-09-01,2026-12-31,0.17,gross_booking_value,OTA fees are separate
+V011,2026-09-01,2026-12-31,0.17,gross_booking_value,OTA fees are separate
+V012,2026-09-01,2026-12-31,0.2,gross_booking_value,OTA fees are separate
+V013,2026-09-01,2026-12-31,0.17,gross_booking_value,OTA fees are separate
+V014,2026-09-01,2026-12-31,0.17,gross_booking_value,OTA fees are separate
+V015,2026-09-01,2026-12-31,0.17,gross_booking_value,OTA fees are separate
+V016,2026-09-01,2026-12-31,0.2,gross_booking_value,OTA fees are separate
+V017,2026-09-01,2026-12-31,0.17,gross_booking_value,OTA fees are separate
+V018,2026-09-01,2026-12-31,0.17,gross_booking_value,OTA fees are separate
+V019,2026-09-01,2026-12-31,0.17,gross_booking_value,OTA fees are separate
+V020,2026-09-01,2026-12-31,0.2,gross_booking_value,OTA fees are separate
+</script>
+<script>
+// ---------- загрузка ----------
+const RAW = {};
+for (const k of ['properties','reservations','payments','expenses','commission_rules'])
+  RAW[k] = document.getElementById('d-' + k).textContent;
+
+function parseCsv(text) {
+  const lines = text.replace(/^﻿/, '').trim().split(/\r?\n/);
+  const head = lines[0].split(',').map(s => s.trim());
+  return lines.slice(1).filter(l => l.trim()).map((l, i) => {
+    const v = l.split(','); const o = { _row: i + 2 };
+    head.forEach((h, j) => o[h] = (v[j] ?? '').trim());
+    return o;
+  });
+}
+const day = s => Date.UTC(+s.slice(0,4), +s.slice(5,7) - 1, +s.slice(8,10)) / 864e5;
+const iso = n => new Date(n * 864e5).toISOString().slice(0, 10);
+const fmt = n => Math.round(n).toLocaleString('ru-RU');
+const mln = n => (n / 1e6).toLocaleString('ru-RU', {maximumFractionDigits: 1}) + ' млн';
+
+// ---------- проверки качества ----------
+function prepare(raw) {
+  const props = parseCsv(raw.properties), rules = parseCsv(raw.commission_rules);
+  const R = parseCsv(raw.reservations), P = parseCsv(raw.payments), E = parseCsv(raw.expenses);
+  const propMap = Object.fromEntries(props.map(p => [p.property_id, p]));
+  const rateOf = (pid, d) => {
+    const r = rules.find(x => x.property_id === pid && x.effective_from <= d && d <= x.effective_to);
+    return r ? +r.management_fee_rate : 0;
+  };
+  const issues = [];
+  const issue = (table, id, row, check, what, decision) => issues.push({table, id, row, check, what, decision});
+
+  const seen = new Set();
+  for (const r of R) {
+    r.gross = +r.gross_booking_value; r.ota = +r.ota_fee; r.refund = +r.refund_amount;
+    r.ci = day(r.check_in); r.co = day(r.check_out); r.nights = r.co - r.ci;
+    r.dup = seen.has(r.reservation_id); seen.add(r.reservation_id);
+    r.badProp = !propMap[r.property_id];
+    r.badCur = !r.badProp && r.currency !== propMap[r.property_id].base_currency;
+    r.badRefund = r.refund > r.gross || (r.status !== 'cancelled' && r.refund > 0);
+    r.negOta = r.ota < 0;
+    r.base = !(r.dup || r.badProp || r.badCur || r.badRefund);
+    r.net = r.gross - r.refund;
+    r.otaEff = r.gross ? r.ota * r.net / r.gross : 0;
+    r.rate = rateOf(r.property_id, r.check_in);
+    r.mgmt = r.rate * r.net;
+    r.expected = r.net - r.otaEff;
+    if (r.dup) issue('reservations', r.reservation_id, r._row, 'Дубль', 'Повтор reservation_id; строка совпадает с первой', 'Исключено');
+    else if (r.badProp) issue('reservations', r.reservation_id, r._row, 'Некорректный ID', `Объекта ${r.property_id} нет в properties`, 'Исключено');
+    else if (r.badCur) issue('reservations', r.reservation_id, r._row, 'Валюта', `Валюта ${r.currency} при base_currency ${propMap[r.property_id].base_currency}; сумма ${fmt(r.gross)} по масштабу похожа на IDR. Курса нет`, 'Исключено');
+    else if (r.badRefund) issue('reservations', r.reservation_id, r._row, 'Арифметика', `Статус ${r.status}, refund ${fmt(r.refund)} больше gross ${fmt(r.gross)} на ${fmt(r.refund - r.gross)}. Похоже на отмену с опечаткой в сумме`, 'Исключено');
+  }
+  for (const r of R) {
+    r.partners = [];
+    if (r.base && r.status !== 'cancelled')
+      r.partners = R.filter(o => o !== r && o.base && o.status !== 'cancelled' && o.property_id === r.property_id && o.ci < r.co && o.co > r.ci).map(o => o.reservation_id);
+    r.review = r.base && (r.partners.length > 0 || r.negOta);
+    if (r.base && r.negOta) issue('reservations', r.reservation_id, r._row, 'Арифметика', `Отрицательная ota_fee ${fmt(r.ota)}; поступление больше gross`, 'На проверке');
+    if (r.partners.length) issue('reservations', r.reservation_id, r._row, 'Пересечение дат',
+      `${r.property_id} ${r.check_in} → ${r.check_out} пересекается с ${r.partners.join(', ')}` + (r.status === 'modified' ? '. Статус modified без ссылки на исходную бронь' : ''), 'На проверке');
+  }
+  const direct = R.filter(r => r.base && r.channel === 'Direct' && r.ota > 0).length;
+  if (direct) issue('reservations', 'Direct', '', 'Логика', `У ${direct} прямых броней заполнена ota_fee 12–17%. Это комиссия эквайринга или ошибка?`, 'Вопрос');
+  const cancOta = R.filter(r => r.base && r.status === 'cancelled' && r.ota > 0).length;
+  if (cancOta) issue('reservations', 'cancelled', '', 'Логика', `У ${cancOta} отмен заполнена ota_fee при полном возврате. Считаю комиссию сторнированной; удерживает ли её OTA?`, 'Вопрос');
+
+  const pseen = new Set();
+  for (const p of P) {
+    p.amt = +p.amount;
+    p.dup = pseen.has(p.payment_id); pseen.add(p.payment_id);
+    p.badProp = !propMap[p.property_id];
+    p.zero = p.amt <= 0;
+    p.noRes = !R.some(r => r.reservation_id === p.reservation_id);
+    p.inc = !(p.dup || p.badProp || p.zero || p.noRes) && p.status === 'received';
+    if (p.dup) issue('payments', p.payment_id, p._row, 'Дубль', 'Повтор payment_id, строка идентична предыдущей', 'Исключено');
+    else if (p.badProp) issue('payments', p.payment_id, p._row, 'Некорректный ID', `Объекта ${p.property_id} нет в properties (бронь ${p.reservation_id})`, 'Исключено');
+    else if (p.noRes) issue('payments', p.payment_id, p._row, 'Некорректный ID', `Брони ${p.reservation_id} нет`, 'Исключено');
+    else if (p.zero) issue('payments', p.payment_id, p._row, 'Арифметика', `Сумма 0 со статусом received (бронь ${p.reservation_id})`, 'Исключено');
+  }
+  const lastUpd = R.reduce((m, r) => r.updated_at > m ? r.updated_at : m, '');
+  const future = P.filter(p => p.inc && p.payment_date > lastUpd).length;
+  if (future) issue('payments', 'даты', '', 'Даты', `Последний updated_at в бронях ${lastUpd}, но ${future} платежей received датированы позже. Какая дата среза?`, 'Вопрос');
+  const paidRes = new Set(P.filter(p => p.inc || p.zero).map(p => p.reservation_id));
+  const unpaid = R.filter(r => r.base && r.status !== 'cancelled' && !paidRes.has(r.reservation_id)).length;
+  issue('payments', 'полнота', '', 'Полнота', `У ${unpaid} действующих броней нет ни одной строки в payments (это все нечётные ID). Выгрузка неполная?`, 'Вопрос');
+
+  for (const e of E) {
+    e.amt = +e.amount; e.inc = !!propMap[e.property_id];
+    if (!e.inc) issue('expenses', e.expense_id, e._row, 'Некорректный ID', `Объекта ${e.property_id} нет в properties, ${fmt(e.amt)} IDR`, 'Исключено');
+  }
+  const recv = {};
+  for (const p of P) if (p.inc) recv[p.reservation_id] = (recv[p.reservation_id] || 0) + p.amt;
+  for (const r of R) { r.received = recv[r.reservation_id] || 0; r.diff = r.received - r.expected; }
+  return {props, R, P, E, issues};
+}
+
+// ---------- расчёт под фильтры ----------
+function compute(D, f) {
+  const s = day(f.start), e = day(f.end);
+  const pf = pid => f.prop === 'Все' || pid === f.prop;
+  const z = () => ({gross:0, refund:0, net:0, ota:0, mgmt:0, exp:0, expPending:0, expPaid:0, cash:0, nights:0, review:0});
+  const tot = z(), byProp = Object.fromEntries(D.props.map(p => [p.property_id, z()]));
+  const rows = [];
+  for (const r of D.R) {
+    r.inc = r.base && (f.review || !r.review);
+    const n = Math.max(0, Math.min(r.co, e + 1) - Math.max(r.ci, s));
+    r.inPeriod = n > 0;
+    if (!r.inc) { if (r.inPeriod && pf(r.property_id)) rows.push(r); continue; }
+    const sh = r.nights ? n / r.nights : 0;
+    const add = t => { t.gross += r.gross*sh; t.refund += r.refund*sh; t.net += r.net*sh; t.ota += r.otaEff*sh; t.mgmt += r.mgmt*sh; t.nights += n; if (n && r.review) t.review++; };
+    add(byProp[r.property_id]);
+    if (pf(r.property_id)) { add(tot); if (n) rows.push(r); }
+  }
+  for (const p of D.P) if (p.inc && p.payment_date >= f.start && p.payment_date <= f.end) {
+    byProp[p.property_id].cash += p.amt; if (pf(p.property_id)) tot.cash += p.amt;
+  }
+  for (const x of D.E) if (x.inc && x.expense_date >= f.start && x.expense_date <= f.end) {
+    for (const t of [byProp[x.property_id], ...(pf(x.property_id) ? [tot] : [])]) {
+      t.exp += x.amt; if (x.payment_status === 'paid') t.expPaid += x.amt; else t.expPending += x.amt;
+    }
+  }
+  for (const t of [tot, ...Object.values(byProp)]) { t.owner = t.net - t.ota - t.mgmt - t.exp; t.accr = t.net - t.ota; }
+  // недели (пн–вс): начислено net−OTA по ночам vs поступило
+  const weeks = {};
+  const wk = d => { const dow = (new Date(d * 864e5).getUTCDay() + 6) % 7; return d - dow; };
+  for (const r of D.R) if (r.inc && pf(r.property_id) && r.nights)
+    for (let d = Math.max(r.ci, s); d < Math.min(r.co, e + 1); d++) { const w = wk(d); (weeks[w] ||= {a:0, c:0}).a += r.expected / r.nights; }
+  for (const p of D.P) if (p.inc && pf(p.property_id) && p.payment_date >= f.start && p.payment_date <= f.end) { const w = wk(day(p.payment_date)); (weeks[w] ||= {a:0, c:0}).c += p.amt; }
+  return {tot, byProp, rows, weeks};
+}
+
+// ---------- отрисовка ----------
+const $ = id => document.getElementById(id);
+let DATA = prepare(RAW), resTab = 'все', dqTab = 'все', propSort = null;
+
+function filters() { return {prop: $('fProp').value, start: $('fStart').value, end: $('fEnd').value, review: $('fReview').checked}; }
+
+function render() {
+  const f = filters();
+  if (f.start > f.end) return;
+  const {tot, byProp, rows, weeks} = compute(DATA, f);
+  const k = (l, v, h, cls = '') => `<div class="card kpi ${cls}"><div class="l">${l}</div><div class="v">${fmt(v)}</div><div class="h">${h}</div></div>`;
+  $('kpis').innerHTML =
+    k('Gross bookings', tot.gross, `возвраты ${fmt(tot.refund)}`) +
+    k('Net booking value', tot.net, 'gross − возвраты') +
+    k('OTA fees', tot.ota, 'пропорционально net') +
+    k('Management fee', tot.mgmt, 'ставка × net') +
+    k('Операционные расходы', tot.exp, `из них pending ${fmt(tot.expPending)}`) +
+    k('Owner balance <span class="tag t-rv">оценка</span>', tot.owner, 'net − OTA − mgmt − расходы', 'main') +
+    k('Начислено к получению', tot.accr, 'net − OTA, по ночам периода') +
+    k('Поступило', tot.cash, 'по дате платежа') +
+    k('Поступило − начислено', tot.cash - tot.accr, tot.accr ? `поступило ${Math.round(tot.cash / tot.accr * 100)}% от начисленного` : '');
+  const rv = rows.filter(r => r.review && r.inc).length;
+  $('reviewNote').innerHTML = f.review && rv ? `<div class="warnline">В итогах ${rv} броней «на проверке» (пересечение дат на одной вилле). Если снять галочку, видно, насколько от них зависит результат.</div>` : '';
+
+  // waterfall
+  const max = Math.max(tot.gross, 1), W = v => (v / max * 100).toFixed(2) + '%';
+  const steps = [['Gross bookings', 0, tot.gross, 'var(--accent)'], ['− возвраты', tot.gross - tot.refund, tot.refund, 'var(--bad)'],
+    ['− OTA fees', tot.net - tot.ota, tot.ota, 'var(--bad)'], ['− management fee', tot.net - tot.ota - tot.mgmt, tot.mgmt, 'var(--bad)'],
+    ['− расходы', Math.max(tot.owner, 0), tot.exp, 'var(--bad)'], ['= owner balance', 0, Math.max(tot.owner, 0), 'var(--cash)']];
+  $('wf').innerHTML = steps.map(([l, off, v, c]) => `<div class="row"><div>${l}</div><div class="track"><div class="seg" style="left:${W(off)};width:${W(v)};background:${c}"></div></div><div class="num">${fmt(v)}</div></div>`).join('');
+
+  // weekly svg
+  const ws = Object.keys(weeks).map(Number).sort((a, b) => a - b);
+  const mx = Math.max(1, ...ws.map(w => Math.max(weeks[w].a, weeks[w].c)));
+  const bw = 560 / Math.max(ws.length, 1), h = 170;
+  $('weekly').innerHTML = `<svg viewBox="0 0 600 200" width="100%" role="img" aria-label="Начислено и поступило по неделям">` +
+    `<line x1="30" y1="${h}" x2="590" y2="${h}" stroke="var(--line)"/>` +
+    ws.map((w, i) => { const x = 32 + i * bw, a = weeks[w].a / mx * (h - 10), c = weeks[w].c / mx * (h - 10), b = Math.max(3, bw / 2 - 3);
+      return `<rect x="${x}" y="${h - a}" width="${b}" height="${a}" fill="var(--accent)" rx="2"><title>${iso(w)}: начислено ${fmt(weeks[w].a)}</title></rect>` +
+             `<rect x="${x + b + 1}" y="${h - c}" width="${b}" height="${c}" fill="var(--cash)" rx="2"><title>${iso(w)}: поступило ${fmt(weeks[w].c)}</title></rect>` +
+             (i % 2 === 0 ? `<text x="${x}" y="${h + 14}">${iso(w).slice(5)}</text>` : ''); }).join('') +
+    `<text x="0" y="12">${mln(mx)}</text></svg>`;
+
+  // by property
+  const cols = [['Объект', p => p.property_id + ' · ' + p.cluster, 0], ['Gross', p => byProp[p.property_id].gross], ['Возвраты', p => byProp[p.property_id].refund],
+    ['Net', p => byProp[p.property_id].net], ['OTA fees', p => byProp[p.property_id].ota], ['Mgmt fee', p => byProp[p.property_id].mgmt],
+    ['Расходы', p => byProp[p.property_id].exp], ['Owner balance', p => byProp[p.property_id].owner], ['Поступило', p => byProp[p.property_id].cash],
+    ['Ночей', p => byProp[p.property_id].nights], ['На проверке', p => byProp[p.property_id].review]];
+  let list = DATA.props.slice();
+  if (propSort != null) list.sort((a, b) => cols[propSort][1](b) - cols[propSort][1](a));
+  const sum = i => list.reduce((s, p) => s + cols[i][1](p), 0);
+  $('tProps').innerHTML = `<thead><tr>${cols.map((c, i) => `<th data-i="${i}" class="${i ? 'num' : ''}">${c[0]}</th>`).join('')}</tr></thead><tbody>` +
+    list.map(p => `<tr${f.prop === p.property_id ? ' style="background:var(--accent-soft)"' : ''}>${cols.map((c, i) => `<td class="${i ? 'num' : ''}">${i ? fmt(c[1](p)) : c[1](p)}</td>`).join('')}</tr>`).join('') +
+    `</tbody><tfoot><tr><td>Итого 20 объектов</td>${cols.slice(1).map((c, i) => `<td class="num">${fmt(sum(i + 1))}</td>`).join('')}</tr></tfoot>`;
+  $('tProps').querySelectorAll('th').forEach(th => th.onclick = () => { propSort = +th.dataset.i || null; render(); });
+
+  // reservations
+  const recon = r => !r.inc ? 'исключена' : r.received === 0 ? (r.expected === 0 ? 'нечего получать' : 'нет платежа') : Math.abs(r.diff) < 1 ? 'сходится' : 'расхождение';
+  const groups = ['все', 'сходится', 'нет платежа', 'расхождение', 'нечего получать', 'исключена'];
+  const cnt = g => g === 'все' ? rows.length : rows.filter(r => recon(r) === g).length;
+  $('resTabs').innerHTML = groups.map(g => `<button class="chip ${g === resTab ? 'on' : ''}" data-g="${g}">${g} · ${cnt(g)}</button>`).join('');
+  $('resTabs').querySelectorAll('button').forEach(b => b.onclick = () => { resTab = b.dataset.g; render(); });
+  const tagOf = r => !r.base ? '<span class="tag t-ex">исключена</span>' : r.review ? '<span class="tag t-rv">на проверке</span>' : '<span class="tag t-ok">ok</span>';
+  const rr = rows.filter(r => resTab === 'все' || recon(r) === resTab).sort((a, b) => a.property_id.localeCompare(b.property_id) || a.ci - b.ci);
+  $('tRes').innerHTML = `<thead><tr><th>Бронь</th><th>Объект</th><th>Даты</th><th>Статус</th><th>Канал</th><th class="num">Gross</th><th class="num">Refund</th><th class="num">OTA fee</th><th class="num">Mgmt fee</th><th class="num">Ожидается</th><th class="num">Получено</th><th class="num">Разница</th><th>Сверка</th><th>Данные</th></tr></thead><tbody>` +
+    rr.map(r => `<tr class="${r.inc ? '' : 'excl'}"><td>${r.reservation_id}</td><td>${r.property_id}</td><td>${r.check_in.slice(5)} → ${r.check_out.slice(5)}</td><td>${r.status}</td><td>${r.channel}</td>` +
+      `<td class="num">${fmt(r.gross)}</td><td class="num">${fmt(r.refund)}</td><td class="num">${fmt(r.otaEff)}</td><td class="num">${fmt(r.mgmt)}</td><td class="num">${fmt(r.expected)}</td><td class="num">${fmt(r.received)}</td><td class="num">${fmt(r.diff)}</td><td>${recon(r)}</td><td>${tagOf(r)}</td></tr>`).join('') + '</tbody>';
+
+  // dq
+  const I = DATA.issues, dg = ['все', 'Исключено', 'На проверке', 'Вопрос'];
+  const dc = g => g === 'все' ? I.length : I.filter(i => i.decision === g).length;
+  $('dqTabs').innerHTML = dg.map(g => `<button class="chip ${g === dqTab ? 'on' : ''}" data-g="${g}">${g} · ${dc(g)}</button>`).join('');
+  $('dqTabs').querySelectorAll('button').forEach(b => b.onclick = () => { dqTab = b.dataset.g; render(); });
+  const cls = {'Исключено': 't-ex', 'На проверке': 't-rv', 'Вопрос': 't-q'};
+  $('tDq').innerHTML = `<thead><tr><th>Таблица</th><th>Запись</th><th>Строка</th><th>Проверка</th><th>Что не так</th><th>Решение</th></tr></thead><tbody>` +
+    I.filter(i => dqTab === 'все' || i.decision === dqTab).map(i => `<tr><td>${i.table}</td><td>${i.id}</td><td>${i.row}</td><td>${i.check}</td><td class="wrap">${i.what}</td><td><span class="tag ${cls[i.decision]}">${i.decision}</span></td></tr>`).join('') + '</tbody>';
+}
+
+function initFilters() {
+  $('fProp').innerHTML = '<option>Все</option>' + DATA.props.map(p => `<option value="${p.property_id}">${p.property_id} · ${p.cluster} · ${p.owner_id}</option>`).join('');
+}
+initFilters();
+for (const id of ['fProp', 'fStart', 'fEnd', 'fReview']) $(id).addEventListener('input', render);
+document.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { const [a, z] = b.dataset.p.split(','); $('fStart').value = a; $('fEnd').value = z; render(); });
+$('fFiles').addEventListener('change', async ev => {
+  const raw = {...RAW};
+  for (const file of ev.target.files) { const k = file.name.replace(/\.csv$/i, ''); if (k in raw) raw[k] = await file.text(); }
+  DATA = prepare(raw); initFilters(); render();
+});
+render();
+</script>
+</body>
+</html>
