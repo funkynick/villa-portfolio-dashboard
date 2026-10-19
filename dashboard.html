@@ -137,7 +137,7 @@ svg text{fill:var(--muted);font-size:10px}
   <section>
     <h2>Показатели по сценариям</h2>
     <div class="tbl"><table id="tScen"></table></div>
-    <div class="note" style="margin-top:6px">«Поступило» в сценариях не меняется, потому что считается по платежам.</div>
+    <div class="note" style="margin-top:6px">«Поступило» во всех сценариях одно и то же: деньги считаются по платежам, а платежи по исключённым броням реальны. Поэтому в сценарии «без спорных броней» поступило может быть больше начисленного. «Ночей продано» включает ночи, проданные дважды, поэтому загрузку по этой строке считать нельзя.</div>
   </section>
   <section>
     <h2>Спорные брони по сценариям</h2>
@@ -759,6 +759,27 @@ function prepare(raw) {
   const recv = {};
   for (const p of P) if (p.inc) recv[p.reservation_id] = (recv[p.reservation_id] || 0) + p.amt;
   for (const r of R) { r.received = recv[r.reservation_id] || 0; r.diff = r.received - r.expected; }
+  // скрытые дубли: одинаковые даты на одной вилле или две modified-версии с пересечением
+  const active = R.filter(r => r.base && r.status !== 'cancelled');
+  for (let i = 0; i < active.length; i++) for (let j = i + 1; j < active.length; j++) {
+    const a = active[i], b = active[j];
+    if (a.property_id !== b.property_id || !(a.ci < b.co && b.ci < a.co)) continue;
+    const same = a.ci === b.ci && a.co === b.co, twoMod = a.status === 'modified' && b.status === 'modified';
+    if (!same && !twoMod) continue;
+    const paid = [a, b].filter(r => r.received > 0).map(r => r.reservation_id);
+    issue('reservations', `${a.reservation_id}, ${b.reservation_id}`, `${a._row}, ${b._row}`, 'Скрытый дубль',
+      same ? `${a.property_id}, одинаковые даты ${a.check_in} → ${a.check_out}, разные суммы (${fmt(a.gross)} и ${fmt(b.gross)})`
+           : `${a.property_id}, обе modified, почти одни даты (${a.check_in} → ${a.check_out} и ${b.check_in} → ${b.check_out}). Похоже на две версии одной брони`,
+      'На проверке', (paid.length === 1 ? `Платёж только по ${paid[0]}` : paid.length ? 'Платёж по обеим' : 'Платежа нет ни по одной') + '. Обе в расчёте, итог без них на вкладке «Сценарии»');
+  }
+  const mods = R.filter(r => r.base && r.status === 'modified');
+  if (mods.length) issue('reservations', mods.map(r => r.reservation_id).join(', '), '', 'Логика',
+    `${mods.length} броней со статусом modified без ссылки на исходную бронь, ${mods.filter(r => r.partners.length).length} из них пересекаются с другими бронями на той же вилле: исходная версия могла остаться как confirmed`,
+    'Вопрос', 'В расчёте как текущая версия брони. Нужно поле «изменена из» или выгрузка из channel manager');
+  const late = R.filter(r => r.base && (r.status === 'cancelled' || r.status === 'modified') && r.updated_at >= r.check_out);
+  if (late.length) issue('reservations', late.map(r => r.reservation_id).join(', '), '', 'Даты',
+    `У ${late.length} отменённых и изменённых броней updated_at ${[...new Set(late.map(r => r.updated_at))].join(', ')} позже даты выезда: бронь отменена или изменена после проживания. Все отмены и modified датированы одним днём`,
+    'Вопрос', 'Похоже, updated_at — дата выгрузки (две выгрузки: 15.09 и 15.10), а не дата события. От этого зависит, в какой период относить отмену');
   return {props, R, P, E, issues};
 }
 
@@ -896,7 +917,7 @@ function renderScen(f, sc) {
     <div class="d">owner balance${m === 'all' ? '' : ` · ${pct(sc[m].owner, sc.all.owner)} к «все брони»`}</div>
     <div class="note" style="margin-top:8px">${desc}. Броней в расчёте: ${sc[m].n}.</div></div>`).join('');
   const lines = [['Gross bookings', 'gross'], ['− Возвраты', 'refund'], ['Net booking value', 'net'], ['− OTA fees', 'ota'], ['− Management fee', 'mgmt'],
-    ['− Операционные расходы', 'exp'], ['Owner balance (оценка)', 'owner'], ['Начислено к получению', 'accr'], ['Поступило', 'cash'], ['Ночей продано', 'nights'], ['Броней в расчёте', 'n']];
+    ['− Операционные расходы', 'exp'], ['Owner balance (оценка)', 'owner'], ['Начислено к получению', 'accr'], ['Поступило (от сценария не зависит)', 'cash'], ['Ночей продано (с двойными продажами)', 'nights'], ['Броней в расчёте', 'n']];
   $('tScen').innerHTML = `<thead><tr><th>Показатель</th>${SCEN.map(x => `<th class="num">${x[1]}</th>`).join('')}<th class="num">Разброс</th></tr></thead><tbody>` +
     lines.map(([l, k]) => `<tr${k === 'owner' ? ' style="font-weight:600"' : ''}><td>${l}</td>${SCEN.map(([m]) => `<td class="num">${fmt(sc[m][k])}</td>`).join('')}<td class="num">${fmt(sc.all[k] - sc.none[k])}</td></tr>`).join('') + '</tbody>';
 
