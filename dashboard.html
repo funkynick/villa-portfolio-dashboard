@@ -54,8 +54,21 @@ section{margin-top:18px}
 table{border-collapse:collapse;width:100%;font-size:12.5px}
 th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
 th{position:sticky;top:0;background:var(--panel);font-weight:600;color:var(--muted);font-size:11.5px;cursor:pointer;user-select:none}
-tr.excl td{opacity:.55}
-td{white-space:nowrap} td.wrap{white-space:normal;min-width:280px}
+tr.excl td{opacity:.6}
+.pages{display:flex;gap:4px;flex-wrap:wrap;margin-top:14px;border-bottom:1px solid var(--line)}
+.pages button{font:inherit;font-size:13.5px;background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);padding:8px 12px;cursor:pointer;margin-bottom:-1px}
+.pages button.on{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
+.pages .cnt{font-size:11px;margin-left:5px;padding:0 5px;border-radius:8px;background:var(--bad-soft);color:var(--bad)}
+.page{display:none} .page.on{display:block}
+.scen3{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.scen .v{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;margin:4px 0}
+.scen .d{font-size:12px;color:var(--muted)} .scen.on{border-color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
+.legendrow{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:8px}
+tr.r-ex td{background:var(--bad-soft)} tr.r-rv td{background:var(--warn-soft)} tr.r-q td{background:var(--q-soft)}
+tr.r-ex td,tr.r-rv td,tr.r-q td{border-bottom-color:var(--panel)}
+#tDq{min-width:1250px} #tRes{min-width:1450px} #tConf{min-width:1100px}
+.yes{color:var(--cash);font-weight:600} .no{color:var(--bad);font-weight:600}
+td{white-space:nowrap} td.wrap{white-space:normal;min-width:280px;max-width:none;margin:0;padding:6px 8px}
 @media(min-width:1000px){.bar{position:sticky;top:0;z-index:5}}
 tfoot td{font-weight:600}
 .legend{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-bottom:6px}
@@ -72,8 +85,15 @@ svg text{fill:var(--muted);font-size:10px}
 <body>
 <div class="wrap">
   <h1>Портфель вилл: начисления, деньги, качество данных</h1>
-  <div class="sub">Суммы в IDR. Исходные CSV вшиты в файл, всё считается в браузере при открытии. Методология и допущения внизу страницы.</div>
+  <div class="sub">Суммы в IDR. Исходные CSV вшиты в файл, всё считается в браузере при открытии. Методология и допущения на вкладке «Логика и архитектура».</div>
   <div class="sub" style="margin-top:4px"><a href="https://github.com/funkynick/villa-portfolio-dashboard">Репозиторий и README</a> · <a href="https://docs.google.com/spreadsheets/d/10bRlTWU2wo7KbRkbOANFSbQaTnDPV2zAP-T884Ua-xg/edit?usp=sharing">Google-таблица</a> · <a href="villa_finance.xlsx">Скачать xlsx</a></div>
+
+  <nav class="pages" id="pages">
+    <button data-page="dash" class="on">Дашборд</button>
+    <button data-page="scen">Сценарии</button>
+    <button data-page="err">Ошибки в данных<span class="cnt" id="errCnt"></span></button>
+    <button data-page="logic">Логика и архитектура</button>
+  </nav>
 
   <div class="bar">
     <label>Объект<select id="fProp"></select></label>
@@ -84,10 +104,11 @@ svg text{fill:var(--muted);font-size:10px}
       <button class="chip" data-p="2026-10-01,2026-10-31">Октябрь</button>
       <button class="chip" data-p="2026-09-01,2026-10-31">Сен–Окт</button>
     </div>
-    <label class="toggle"><input type="checkbox" id="fReview" checked> учитывать брони «на проверке»</label>
+    <label>Брони «на проверке»<select id="fReview"><option value="all">учитывать все</option><option value="paid">в конфликте — только оплаченные</option><option value="none">не учитывать</option></select></label>
     <label class="filebox">Загрузить свои CSV<input type="file" id="fFiles" multiple accept=".csv"></label>
   </div>
 
+  <div class="page on" data-page="dash">
   <div class="grid kpis" id="kpis"></div>
   <div id="reviewNote"></div>
 
@@ -109,8 +130,27 @@ svg text{fill:var(--muted);font-size:10px}
     <h2>По объектам за период</h2>
     <div class="tbl"><table id="tProps"></table></div>
   </section>
+  </div>
 
+  <div class="page" data-page="scen">
+  <div class="note" style="margin-bottom:10px">На проверке брони, у которых даты пересекаются с другой бронью на той же вилле, и одна бронь с отрицательной ota_fee. Даты бронирования в данных нет, поэтому какая из пересекающихся броней настоящая, не определить. Итог показан в трёх вариантах; фильтры «Объект» и «Период» действуют.</div>
+  <div class="grid scen3" id="scenCards"></div>
   <section>
+    <h2>Показатели по сценариям</h2>
+    <div class="tbl"><table id="tScen"></table></div>
+    <div class="note" style="margin-top:6px">«Поступило» во всех сценариях одинаково: деньги считаются по платежам, а не по броням.</div>
+  </section>
+  <section>
+    <h2>Брони на проверке: что остаётся в каждом сценарии</h2>
+    <div class="legendrow"><span><span class="tag t-ok">оплачена</span> есть платёж, остаётся в сценарии «только оплаченные»</span><span><span class="tag t-rv">без платежа</span> уходит</span><span><span class="tag t-ex">конфликт не снят</span> оплачены обе пересекающиеся брони</span></div>
+    <div id="cfNote" class="note" style="margin-bottom:8px"></div>
+    <div class="tbl" style="max-height:520px"><table id="tConf"></table></div>
+  </section>
+  </div>
+
+  <div class="page" data-page="err">
+  <div class="legendrow"><span><span class="tag t-ex">исключено</span> не в расчёте</span><span><span class="tag t-rv">на проверке</span> в расчёте, но пересекается с другой бронью или ota_fee &lt; 0</span><span><span class="tag t-q">вопрос</span> решение за финансами</span></div>
+  <section style="margin-top:0">
     <h2>Брони в периоде: сверка начислений и поступлений</h2>
     <div class="tabs" id="resTabs"></div>
     <div class="tbl" style="max-height:460px"><table id="tRes"></table></div>
@@ -118,12 +158,14 @@ svg text{fill:var(--muted);font-size:10px}
 
   <section>
     <h2>Качество данных</h2>
-    <div class="note" style="margin-bottom:8px">Ничего не исправлено молча. «Исключено» — запись не попадает в расчёт. «На проверке» — попадает, но помечена (переключатель вверху показывает итог без неё). «Вопрос» — системная особенность, решение за финансами.</div>
     <div class="tabs" id="dqTabs"></div>
     <div class="tbl" style="max-height:460px"><table id="tDq"></table></div>
   </section>
+  </div>
 
-  <section class="card method">
+  <div class="page" data-page="logic">
+
+  <section class="card method" style="margin-top:0">
     <h2>Финансовая логика</h2>
     <p><b>Признание выручки — по ночам проживания</b>, как требует МСФО (IFRS) 15: проживание оказывается как услуга во времени. Для сравнения, по дате выезда gross сентября был бы 683 262 688 вместо 757 178 005, а 23 291 150 ушли бы в ноябрь.</p>
     <p><b>Выручка и деньги — разные числа.</b> Начисления (accrual) привязаны к ночам проживания: доля брони в периоде = ночей в периоде / всего ночей; ночь — дата от check_in включительно до check_out не включая. Деньги (cash) считаются по payment_date. Платёж в ноябре за октябрьскую бронь в кэш октября не попадает, хотя выручка начислена.</p>
@@ -134,6 +176,7 @@ svg text{fill:var(--muted);font-size:10px}
     <p><b>Сверка с деньгами.</b> Платёж приходит уже за вычетом ota_fee, поэтому сравнивается с <code>net − OTA fee</code>, а не с gross. Где платёж есть, он совпадает до рупии; вся разница — брони без платежа.</p>
     <p><b>Почему owner balance — оценка.</b> Нет начального сальдо и выплат собственнику, налогов, правил удержаний при отменах, курса валют, договорённости о том, какие расходы несёт собственник, и даты среза данных.</p>
     <p><b>Правила качества данных.</b> Исключаются: дубли ID (остаётся первая строка), объекты, которых нет в properties, валюта не равна base_currency, возврат больше суммы или возврат при статусе confirmed. На проверке: пересечение дат на одной вилле, отрицательная ota_fee.</p>
+    <p><b>Три сценария для броней «на проверке».</b> «Учитывать все» — итог как в данных. «В конфликте — только оплаченные» — из броней на проверке остаются те, по которым есть платёж; если в паре не оплачена ни одна, уходят обе. «Не учитывать» — все брони на проверке убраны. Даты бронирования в данных нет, а платежи есть только у чётных ID, поэтому платёж — подсказка, а не доказательство: 13 пар, где оплачены обе брони, остаются в конфликте при любом сценарии.</p>
   </section>
 
   <section class="card method">
@@ -231,6 +274,8 @@ svg text{fill:var(--muted);font-size:10px}
     <p><b>Аудит изменений.</b> Raw не меняется и не удаляется. У строк в core есть load_id, valid_from и valid_to, поэтому можно восстановить данные на любую дату. Исправления вносятся отдельными корректировками с автором и причиной. Решения по карантину пишутся в журнал, закрытый месяц блокируется.</p>
     <p><b>Разграничение доступа.</b> Финансы видят всё и решают по карантину. Операционная команда видит брони и расходы без итогов собственников. Собственник видит только свои виллы через row-level security по owner_id. Загрузка работает под сервисной учётной записью, ключи хранятся в secret manager.</p>
   </section>
+
+  </div>
 
   <section class="note" style="margin-top:14px">Прототип в рамках тестового задания на 2–3 часа: рабочее ядро расчёта, диагностика данных и схема дальнейшей системы. Ограничения, риски и следующие шаги описаны в README.</section>
 </div>
@@ -637,7 +682,7 @@ function prepare(raw) {
     return r ? +r.management_fee_rate : 0;
   };
   const issues = [];
-  const issue = (table, id, row, check, what, decision) => issues.push({table, id, row, check, what, decision});
+  const issue = (table, id, row, check, what, decision, why) => issues.push({table, id, row, check, what, decision, why});
 
   const seen = new Set();
   for (const r of R) {
@@ -654,24 +699,27 @@ function prepare(raw) {
     r.rate = rateOf(r.property_id, r.check_in);
     r.mgmt = r.rate * r.net;
     r.expected = r.net - r.otaEff;
-    if (r.dup) issue('reservations', r.reservation_id, r._row, 'Дубль', 'Повтор reservation_id; строка совпадает с первой', 'Исключено');
-    else if (r.badProp) issue('reservations', r.reservation_id, r._row, 'Некорректный ID', `Объекта ${r.property_id} нет в properties`, 'Исключено');
-    else if (r.badCur) issue('reservations', r.reservation_id, r._row, 'Валюта', `Валюта ${r.currency} при base_currency ${propMap[r.property_id].base_currency}; сумма ${fmt(r.gross)} по масштабу похожа на IDR. Курса нет`, 'Исключено');
-    else if (r.badRefund) issue('reservations', r.reservation_id, r._row, 'Арифметика', `Статус ${r.status}, refund ${fmt(r.refund)} больше gross ${fmt(r.gross)} на ${fmt(r.refund - r.gross)}. Похоже на отмену с опечаткой в сумме`, 'Исключено');
+    r.why = r.dup ? 'дубль ID' : r.badProp ? `объекта ${r.property_id} нет` : r.badCur ? `валюта ${r.currency}, курса нет` : r.badRefund ? 'refund больше gross при статусе ' + r.status : '';
+    if (r.dup) issue('reservations', r.reservation_id, r._row, 'Дубль', 'Повтор reservation_id; строка совпадает с первой', 'Исключено', 'Вторая копия удвоила бы выручку. Оставлена первая строка');
+    else if (r.badProp) issue('reservations', r.reservation_id, r._row, 'Некорректный ID', `Объекта ${r.property_id} нет в properties`, 'Исключено', 'Нельзя определить собственника и ставку комиссии');
+    else if (r.badCur) issue('reservations', r.reservation_id, r._row, 'Валюта', `Валюта ${r.currency} при base_currency ${propMap[r.property_id].base_currency}; сумма ${fmt(r.gross)} по масштабу похожа на IDR. Курса нет`, 'Исключено', 'Курса нет. Если это USD, бронь стоила бы около 70 млрд IDR и исказила бы итог; если IDR — это правка данных без подтверждения');
+    else if (r.badRefund) issue('reservations', r.reservation_id, r._row, 'Арифметика', `Статус ${r.status}, refund ${fmt(r.refund)} больше gross ${fmt(r.gross)} на ${fmt(r.refund - r.gross)}. Похоже на отмену с опечаткой в сумме`, 'Исключено', `Net был бы ${fmt(r.net)}, платежа нет. Считать отменой — правка данных без подтверждения`);
   }
   for (const r of R) {
     r.partners = [];
     if (r.base && r.status !== 'cancelled')
       r.partners = R.filter(o => o !== r && o.base && o.status !== 'cancelled' && o.property_id === r.property_id && o.ci < r.co && o.co > r.ci).map(o => o.reservation_id);
     r.review = r.base && (r.partners.length > 0 || r.negOta);
-    if (r.base && r.negOta) issue('reservations', r.reservation_id, r._row, 'Арифметика', `Отрицательная ota_fee ${fmt(r.ota)}; поступление больше gross`, 'На проверке');
+    if (r.review) r.why = [r.partners.length ? 'пересекается с ' + r.partners.join(', ') : '', r.negOta ? 'ota_fee < 0' : ''].filter(Boolean).join('; ');
+    if (r.base && r.negOta) issue('reservations', r.reservation_id, r._row, 'Арифметика', `Отрицательная ota_fee ${fmt(r.ota)}; поступление больше gross`, 'На проверке', `Влияние ${fmt(-r.ota)} IDR, платёж сходится с такой арифметикой — бронь оставлена в расчёте`);
     if (r.partners.length) issue('reservations', r.reservation_id, r._row, 'Пересечение дат',
-      `${r.property_id} ${r.check_in} → ${r.check_out} пересекается с ${r.partners.join(', ')}` + (r.status === 'modified' ? '. Статус modified без ссылки на исходную бронь' : ''), 'На проверке');
+      `${r.property_id} ${r.check_in} → ${r.check_out} пересекается с ${r.partners.join(', ')}` + (r.status === 'modified' ? '. Статус modified без ссылки на исходную бронь' : ''), 'На проверке',
+      'Даты бронирования нет, поэтому какая бронь настоящая, не определить. Оставлена в расчёте; итог без неё — на вкладке «Сценарии»');
   }
   const direct = R.filter(r => r.base && r.channel === 'Direct' && r.ota > 0).length;
-  if (direct) issue('reservations', 'Direct', '', 'Логика', `У ${direct} прямых броней заполнена ota_fee 12–17%. Это комиссия эквайринга или ошибка?`, 'Вопрос');
-  const cancOta = R.filter(r => r.base && r.status === 'cancelled' && r.ota > 0).length;
-  if (cancOta) issue('reservations', 'cancelled', '', 'Логика', `У ${cancOta} отмен заполнена ota_fee при полном возврате. Считаю комиссию сторнированной; удерживает ли её OTA?`, 'Вопрос');
+  if (direct) issue('reservations', 'Direct', '', 'Логика', `У ${direct} прямых броней заполнена ota_fee 12–17%. Это комиссия эквайринга или ошибка?`, 'Вопрос', 'Платёж по ним тоже приходит за вычетом этой суммы, поэтому она считается как OTA fee');
+  const cancRows = R.filter(r => r.base && r.status === 'cancelled' && r.ota > 0), cancOta = cancRows.length;
+  if (cancOta) issue('reservations', 'cancelled', '', 'Логика', `У ${cancOta} отмен заполнена ota_fee при полном возврате. Считаю комиссию сторнированной; удерживает ли её OTA?`, 'Вопрос', `Если OTA удерживает комиссию, OTA fees вырастут на ${fmt(cancRows.reduce((a, r) => a + r.ota, 0))}`);
 
   const pseen = new Set();
   for (const p of P) {
@@ -681,21 +729,21 @@ function prepare(raw) {
     p.zero = p.amt <= 0;
     p.noRes = !R.some(r => r.reservation_id === p.reservation_id);
     p.inc = !(p.dup || p.badProp || p.zero || p.noRes) && p.status === 'received';
-    if (p.dup) issue('payments', p.payment_id, p._row, 'Дубль', 'Повтор payment_id, строка идентична предыдущей', 'Исключено');
-    else if (p.badProp) issue('payments', p.payment_id, p._row, 'Некорректный ID', `Объекта ${p.property_id} нет в properties (бронь ${p.reservation_id})`, 'Исключено');
-    else if (p.noRes) issue('payments', p.payment_id, p._row, 'Некорректный ID', `Брони ${p.reservation_id} нет`, 'Исключено');
-    else if (p.zero) issue('payments', p.payment_id, p._row, 'Арифметика', `Сумма 0 со статусом received (бронь ${p.reservation_id})`, 'Исключено');
+    if (p.dup) issue('payments', p.payment_id, p._row, 'Дубль', 'Повтор payment_id, строка идентична предыдущей', 'Исключено', 'Вторая копия удвоила бы поступление');
+    else if (p.badProp) issue('payments', p.payment_id, p._row, 'Некорректный ID', `Объекта ${p.property_id} нет в properties (бронь ${p.reservation_id})`, 'Исключено', 'Нельзя отнести платёж к вилле и собственнику');
+    else if (p.noRes) issue('payments', p.payment_id, p._row, 'Некорректный ID', `Брони ${p.reservation_id} нет`, 'Исключено', 'Не с чем сверить платёж');
+    else if (p.zero) issue('payments', p.payment_id, p._row, 'Арифметика', `Сумма 0 со статусом received (бронь ${p.reservation_id})`, 'Исключено', 'Денег не поступило, хотя статус received. На сумму поступлений не влияет');
   }
   const lastUpd = R.reduce((m, r) => r.updated_at > m ? r.updated_at : m, '');
   const future = P.filter(p => p.inc && p.payment_date > lastUpd).length;
-  if (future) issue('payments', 'даты', '', 'Даты', `Последний updated_at в бронях ${lastUpd}, но ${future} платежей received датированы позже. Какая дата среза?`, 'Вопрос');
+  if (future) issue('payments', 'даты', '', 'Даты', `Последний updated_at в бронях ${lastUpd}, но ${future} платежей received датированы позже. Какая дата среза?`, 'Вопрос', 'От даты среза зависит, какие платежи относятся к периоду');
   const paidRes = new Set(P.filter(p => p.inc || p.zero).map(p => p.reservation_id));
   const unpaid = R.filter(r => r.base && r.status !== 'cancelled' && !paidRes.has(r.reservation_id)).length;
-  issue('payments', 'полнота', '', 'Полнота', `У ${unpaid} действующих броней нет ни одной строки в payments (это все нечётные ID). Выгрузка неполная?`, 'Вопрос');
+  issue('payments', 'полнота', '', 'Полнота', `У ${unpaid} действующих броней нет ни одной строки в payments (это все нечётные ID). Выгрузка неполная?`, 'Вопрос', 'Весь разрыв между начисленным и поступившим по броням приходится на них; где платёж есть, он сходится до рупии');
 
   for (const e of E) {
     e.amt = +e.amount; e.inc = !!propMap[e.property_id];
-    if (!e.inc) issue('expenses', e.expense_id, e._row, 'Некорректный ID', `Объекта ${e.property_id} нет в properties, ${fmt(e.amt)} IDR`, 'Исключено');
+    if (!e.inc) issue('expenses', e.expense_id, e._row, 'Некорректный ID', `Объекта ${e.property_id} нет в properties, ${fmt(e.amt)} IDR`, 'Исключено', 'Нельзя отнести расход к вилле и собственнику');
   }
   const recv = {};
   for (const p of P) if (p.inc) recv[p.reservation_id] = (recv[p.reservation_id] || 0) + p.amt;
@@ -711,7 +759,7 @@ function compute(D, f) {
   const tot = z(), byProp = Object.fromEntries(D.props.map(p => [p.property_id, z()]));
   const rows = [];
   for (const r of D.R) {
-    r.inc = r.base && (f.review || !r.review);
+    r.inc = r.base && (!r.review || f.review === 'all' || (f.review === 'paid' && r.received > 0));
     const n = Math.max(0, Math.min(r.co, e + 1) - Math.max(r.ci, s));
     r.inPeriod = n > 0;
     if (!r.inc) { if (r.inPeriod && pf(r.property_id)) rows.push(r); continue; }
@@ -742,11 +790,14 @@ function compute(D, f) {
 const $ = id => document.getElementById(id);
 let DATA = prepare(RAW), resTab = 'все', dqTab = 'все', propSort = null;
 
-function filters() { return {prop: $('fProp').value, start: $('fStart').value, end: $('fEnd').value, review: $('fReview').checked}; }
+function filters() { return {prop: $('fProp').value, start: $('fStart').value, end: $('fEnd').value, review: $('fReview').value}; }
 
 function render() {
   const f = filters();
   if (f.start > f.end) return;
+  // сценарии считаются до основного расчёта: compute() перезаписывает r.inc у броней
+  const sc = {};
+  for (const [m] of SCEN) { const c = compute(DATA, {...f, review: m}); sc[m] = {...c.tot, n: c.rows.filter(r => r.inc).length}; }
   const {tot, byProp, rows, weeks} = compute(DATA, f);
   const k = (l, v, h, cls = '') => `<div class="card kpi ${cls}"><div class="l">${l}</div><div class="v">${fmt(v)}</div><div class="h">${h}</div></div>`;
   $('kpis').innerHTML =
@@ -760,7 +811,8 @@ function render() {
     k('Поступило', tot.cash, 'по дате платежа') +
     k('Поступило − начислено', tot.cash - tot.accr, tot.accr ? `поступило ${Math.round(tot.cash / tot.accr * 100)}% от начисленного` : '');
   const rv = rows.filter(r => r.review && r.inc).length;
-  $('reviewNote').innerHTML = f.review && rv ? `<div class="warnline">В итогах ${rv} броней «на проверке» (пересечение дат на одной вилле). Если снять галочку, видно, насколько от них зависит результат.</div>` : '';
+  const sName = SCEN.find(x => x[0] === f.review)[1].toLowerCase();
+  $('reviewNote').innerHTML = `<div class="warnline">Сценарий: ${sName}.${rv ? ` В итогах ${rv} броней «на проверке».` : ''} Owner balance от ${mln(sc.none.owner)} до ${mln(sc.all.owner)} в зависимости от сценария — <a href="#scen" data-go="scen">сравнить на вкладке «Сценарии»</a>.</div>`;
 
   // waterfall
   const max = Math.max(tot.gross, 1), W = v => (v / max * 100).toFixed(2) + '%';
@@ -800,21 +852,71 @@ function render() {
   const cnt = g => g === 'все' ? rows.length : rows.filter(r => recon(r) === g).length;
   $('resTabs').innerHTML = groups.map(g => `<button class="chip ${g === resTab ? 'on' : ''}" data-g="${g}">${g} · ${cnt(g)}</button>`).join('');
   $('resTabs').querySelectorAll('button').forEach(b => b.onclick = () => { resTab = b.dataset.g; render(); });
-  const tagOf = r => !r.base ? '<span class="tag t-ex">исключена</span>' : r.review ? '<span class="tag t-rv">на проверке</span>' : '<span class="tag t-ok">ok</span>';
+  const tagOf = r => !r.base ? `<span class="tag t-ex">исключена</span> ${r.why}` : !r.inc ? `<span class="tag t-rv">убрана сценарием</span> ${f.review === 'paid' ? 'нет платежа; ' : ''}${r.why}` : r.review ? `<span class="tag t-rv">на проверке</span> ${r.why}` : '<span class="tag t-ok">ok</span>';
   const rr = rows.filter(r => resTab === 'все' || recon(r) === resTab).sort((a, b) => a.property_id.localeCompare(b.property_id) || a.ci - b.ci);
-  $('tRes').innerHTML = `<thead><tr><th>Бронь</th><th>Объект</th><th>Даты</th><th>Статус</th><th>Канал</th><th class="num">Gross</th><th class="num">Refund</th><th class="num">OTA fee</th><th class="num">Mgmt fee</th><th class="num">Ожидается</th><th class="num">Получено</th><th class="num">Разница</th><th>Сверка</th><th>Данные</th></tr></thead><tbody>` +
-    rr.map(r => `<tr class="${r.inc ? '' : 'excl'}"><td>${r.reservation_id}</td><td>${r.property_id}</td><td>${r.check_in.slice(5)} → ${r.check_out.slice(5)}</td><td>${r.status}</td><td>${r.channel}</td>` +
-      `<td class="num">${fmt(r.gross)}</td><td class="num">${fmt(r.refund)}</td><td class="num">${fmt(r.otaEff)}</td><td class="num">${fmt(r.mgmt)}</td><td class="num">${fmt(r.expected)}</td><td class="num">${fmt(r.received)}</td><td class="num">${fmt(r.diff)}</td><td>${recon(r)}</td><td>${tagOf(r)}</td></tr>`).join('') + '</tbody>';
+  $('tRes').innerHTML = `<thead><tr><th>Бронь</th><th>Объект</th><th>Даты</th><th>Статус</th><th>Канал</th><th class="num">Gross</th><th class="num">Refund</th><th class="num">OTA fee</th><th class="num">Mgmt fee</th><th class="num">Ожидается</th><th class="num">Получено</th><th class="num">Разница</th><th>Сверка</th><th>Данные и причина</th></tr></thead><tbody>` +
+    rr.map(r => `<tr class="${!r.base ? 'r-ex excl' : !r.inc ? 'excl' : r.review ? 'r-rv' : ''}"><td>${r.reservation_id}</td><td>${r.property_id}</td><td>${r.check_in.slice(5)} → ${r.check_out.slice(5)}</td><td>${r.status}</td><td>${r.channel}</td>` +
+      `<td class="num">${fmt(r.gross)}</td><td class="num">${fmt(r.refund)}</td><td class="num">${fmt(r.otaEff)}</td><td class="num">${fmt(r.mgmt)}</td><td class="num">${fmt(r.expected)}</td><td class="num">${fmt(r.received)}</td><td class="num">${fmt(r.diff)}</td><td>${recon(r)}</td><td class="wrap" style="min-width:300px">${tagOf(r)}</td></tr>`).join('') + '</tbody>';
 
   // dq
   const I = DATA.issues, dg = ['все', 'Исключено', 'На проверке', 'Вопрос'];
   const dc = g => g === 'все' ? I.length : I.filter(i => i.decision === g).length;
+  $('errCnt').textContent = I.length;
   $('dqTabs').innerHTML = dg.map(g => `<button class="chip ${g === dqTab ? 'on' : ''}" data-g="${g}">${g} · ${dc(g)}</button>`).join('');
   $('dqTabs').querySelectorAll('button').forEach(b => b.onclick = () => { dqTab = b.dataset.g; render(); });
   const cls = {'Исключено': 't-ex', 'На проверке': 't-rv', 'Вопрос': 't-q'};
-  $('tDq').innerHTML = `<thead><tr><th>Таблица</th><th>Запись</th><th>Строка</th><th>Проверка</th><th>Что не так</th><th>Решение</th></tr></thead><tbody>` +
-    I.filter(i => dqTab === 'все' || i.decision === dqTab).map(i => `<tr><td>${i.table}</td><td>${i.id}</td><td>${i.row}</td><td>${i.check}</td><td class="wrap">${i.what}</td><td><span class="tag ${cls[i.decision]}">${i.decision}</span></td></tr>`).join('') + '</tbody>';
+  $('tDq').innerHTML = `<thead><tr><th>Таблица</th><th>Запись</th><th>Строка</th><th>Проверка</th><th>Что не так</th><th>Решение</th><th>Почему так</th></tr></thead><tbody>` +
+    I.filter(i => dqTab === 'все' || i.decision === dqTab).map(i => `<tr class="${{'Исключено': 'r-ex', 'На проверке': 'r-rv', 'Вопрос': 'r-q'}[i.decision]}"><td>${i.table}</td><td>${i.id}</td><td>${i.row}</td><td>${i.check}</td><td class="wrap">${i.what}</td><td><span class="tag ${cls[i.decision]}">${i.decision}</span></td><td class="wrap" style="min-width:360px">${i.why || ''}</td></tr>`).join('') + '</tbody>';
+
+  renderScen(f, sc);
 }
+
+// ---------- вкладка «Сценарии» ----------
+const SCEN = [
+  ['all', 'Все брони', 'Брони на проверке учитываются как есть в данных'],
+  ['paid', 'В конфликте — только оплаченные', 'Из броней на проверке остаются те, по которым есть платёж. Если в паре не оплачена ни одна, уходят обе'],
+  ['none', 'Без броней на проверке', 'Все брони с пересечением дат и отрицательной ota_fee убраны']];
+
+function renderScen(f, sc) {
+  const pct = (v, b) => b ? (v >= b ? '+' : '−') + Math.abs(Math.round((v - b) / b * 100)) + '%' : '';
+  $('scenCards').innerHTML = SCEN.map(([m, name, desc]) => `<div class="card scen ${m === f.review ? 'on' : ''}">
+    <div class="d">${name}${m === f.review ? ' · выбран в фильтре' : ''}</div>
+    <div class="v">${fmt(sc[m].owner)}</div>
+    <div class="d">owner balance${m === 'all' ? '' : ` · ${pct(sc[m].owner, sc.all.owner)} к «все брони»`}</div>
+    <div class="note" style="margin-top:8px">${desc}. Броней в расчёте: ${sc[m].n}.</div></div>`).join('');
+  const lines = [['Gross bookings', 'gross'], ['− Возвраты', 'refund'], ['Net booking value', 'net'], ['− OTA fees', 'ota'], ['− Management fee', 'mgmt'],
+    ['− Операционные расходы', 'exp'], ['Owner balance (оценка)', 'owner'], ['Начислено к получению', 'accr'], ['Поступило', 'cash'], ['Ночей продано', 'nights'], ['Броней в расчёте', 'n']];
+  $('tScen').innerHTML = `<thead><tr><th>Показатель</th>${SCEN.map(x => `<th class="num">${x[1]}</th>`).join('')}<th class="num">Разброс</th></tr></thead><tbody>` +
+    lines.map(([l, k]) => `<tr${k === 'owner' ? ' style="font-weight:600"' : ''}><td>${l}</td>${SCEN.map(([m]) => `<td class="num">${fmt(sc[m][k])}</td>`).join('')}<td class="num">${fmt(sc.all[k] - sc.none[k])}</td></tr>`).join('') + '</tbody>';
+
+  // брони на проверке в выбранном периоде и объекте
+  const s = day(f.start), e = day(f.end);
+  const byId = Object.fromEntries(DATA.R.filter(r => r.base).map(r => [r.reservation_id, r]));
+  const paidMark = id => byId[id] && byId[id].received > 0 ? `<span class="yes">${id}</span>` : `<span class="no">${id}</span>`;
+  const list = DATA.R.filter(r => r.review && (f.prop === 'Все' || r.property_id === f.prop) && Math.min(r.co, e + 1) > Math.max(r.ci, s))
+    .sort((a, b) => a.property_id.localeCompare(b.property_id) || a.ci - b.ci);
+  const stuck = r => r.received > 0 && r.partners.some(id => byId[id] && byId[id].received > 0);
+  const kept = list.filter(r => r.received > 0).length, st = list.filter(stuck).length;
+  $('cfNote').innerHTML = list.length ? `В периоде ${list.length} броней на проверке. В сценарии «только оплаченные» остаются ${kept}, уходят ${list.length - kept}. У ${st} оплачена и пересекающаяся бронь: платёж здесь не помогает, нужен channel manager.` : 'В выбранном периоде и объекте броней на проверке нет.';
+  const yn = v => v ? '<span class="yes">да</span>' : '<span class="no">нет</span>';
+  $('tConf').innerHTML = `<thead><tr><th>Бронь</th><th>Объект</th><th>Даты</th><th>Статус</th><th>Канал</th><th class="num">Gross</th><th>Платёж</th><th>Пересекается с</th><th>Все</th><th>Оплаченные</th><th>Без проверки</th><th>Итог</th></tr></thead><tbody>` +
+    list.map(r => { const paid = r.received > 0, x = stuck(r);
+      return `<tr class="${x ? 'r-ex' : paid ? '' : 'r-rv'}"><td>${r.reservation_id}</td><td>${r.property_id}</td><td>${r.check_in.slice(5)} → ${r.check_out.slice(5)}</td><td>${r.status}</td><td>${r.channel}</td>` +
+        `<td class="num">${fmt(r.gross)}</td><td>${paid ? `<span class="tag t-ok">${fmt(r.received)}</span>` : '<span class="tag t-rv">без платежа</span>'}</td>` +
+        `<td class="wrap" style="min-width:160px">${r.partners.length ? r.partners.map(paidMark).join(', ') : (r.negOta ? 'ota_fee &lt; 0' : '')}</td>` +
+        `<td>${yn(true)}</td><td>${yn(paid)}</td><td>${yn(false)}</td><td>${x ? '<span class="tag t-ex">конфликт не снят</span>' : paid ? '<span class="tag t-ok">остаётся</span>' : '<span class="tag t-rv">уходит</span>'}</td></tr>`; }).join('') + '</tbody>';
+}
+
+// ---------- вкладки ----------
+function showPage(pg) {
+  if (!document.querySelector(`.page[data-page="${pg}"]`)) pg = 'dash';
+  document.querySelectorAll('.page').forEach(x => x.classList.toggle('on', x.dataset.page === pg));
+  document.querySelectorAll('#pages button').forEach(b => b.classList.toggle('on', b.dataset.page === pg));
+  if (location.hash.slice(1) !== pg) history.replaceState(null, '', '#' + pg);
+}
+document.querySelectorAll('#pages button').forEach(b => b.onclick = () => showPage(b.dataset.page));
+document.addEventListener('click', ev => { const a = ev.target.closest('[data-go]'); if (a) { ev.preventDefault(); showPage(a.dataset.go); window.scrollTo(0, 0); } });
+showPage(location.hash.slice(1) || 'dash');
 
 function initFilters() {
   $('fProp').innerHTML = '<option>Все</option>' + DATA.props.map(p => `<option value="${p.property_id}">${p.property_id} · ${p.cluster} · ${p.owner_id}</option>`).join('');
