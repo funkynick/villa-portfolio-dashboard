@@ -75,7 +75,8 @@ tfoot td{font-weight:600}
 .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
 .note{font-size:12.5px;color:var(--muted)}
 .note code,.method code{background:var(--line);padding:0 4px;border-radius:3px;font-size:12px}
-.method p{margin:6px 0}
+.method p{margin:4px 0 10px}
+.method h3{font-size:13px;margin:12px 0 2px}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
 svg text{fill:var(--muted);font-size:10px}
 .filebox{font-size:12px;color:var(--muted)}
@@ -102,9 +103,9 @@ svg text{fill:var(--muted);font-size:10px}
     <div style="display:flex;gap:6px">
       <button class="chip" data-p="2026-09-01,2026-09-30">Сентябрь</button>
       <button class="chip" data-p="2026-10-01,2026-10-31">Октябрь</button>
-      <button class="chip" data-p="2026-09-01,2026-10-31">Сен–Окт</button>
+      <button class="chip" data-p="2026-09-01,2026-10-31">Оба месяца</button>
     </div>
-    <label>Брони «на проверке»<select id="fReview"><option value="all">учитывать все</option><option value="paid">в конфликте — только оплаченные</option><option value="none">не учитывать</option></select></label>
+    <label>Брони «на проверке»<select id="fReview"><option value="all">учитывать все</option><option value="paid">из спорных только оплаченные</option><option value="none">не учитывать</option></select></label>
     <label class="filebox">Загрузить свои CSV<input type="file" id="fFiles" multiple accept=".csv"></label>
   </div>
 
@@ -116,13 +117,13 @@ svg text{fill:var(--muted);font-size:10px}
     <div class="card">
       <h2>От gross до owner balance</h2>
       <div class="wf" id="wf"></div>
-      <div class="note" style="margin-top:8px">Owner balance — оценка: нет начального сальдо, выплат собственнику, налогов и правил удержаний по отменам.</div>
+      <div class="note" style="margin-top:8px">Owner balance здесь оценка: в данных нет начального сальдо, выплат собственнику, налогов и правил удержаний при отменах.</div>
     </div>
     <div class="card">
       <h2>Начислено к получению и поступило, по неделям</h2>
       <div class="legend"><span><i class="sw" style="background:var(--accent)"></i>начислено (net − OTA, по ночам)</span><span><i class="sw" style="background:var(--cash)"></i>поступило (по дате платежа)</span></div>
       <div id="weekly"></div>
-      <div class="note">Расхождение по неделям связано с датами (начисление идёт по ночам, а деньги приходят во время или после проживания) и с тем, что платежи есть только у половины броней.</div>
+      <div class="note">Столбцы расходятся по двум причинам: деньги приходят во время проживания или после него, а у половины броней платежей нет совсем.</div>
     </div>
   </section>
 
@@ -133,25 +134,25 @@ svg text{fill:var(--muted);font-size:10px}
   </div>
 
   <div class="page" data-page="scen">
-  <div class="note" style="margin-bottom:10px">На проверке брони, у которых даты пересекаются с другой бронью на той же вилле, и одна бронь с отрицательной ota_fee. Даты бронирования в данных нет, поэтому какая из пересекающихся броней настоящая, не определить. Итог показан в трёх вариантах; фильтры «Объект» и «Период» действуют.</div>
+  <div class="note" style="margin-bottom:10px">Спорными считаются брони со статусом «на проверке»: их даты пересекаются с другой бронью на той же вилле или ota_fee меньше нуля. Даты бронирования в выгрузке нет, поэтому нельзя сказать, какая из пересекающихся броней настоящая. Ниже итог в трёх вариантах для выбранного объекта и периода.</div>
   <div class="grid scen3" id="scenCards"></div>
   <section>
     <h2>Показатели по сценариям</h2>
     <div class="tbl"><table id="tScen"></table></div>
-    <div class="note" style="margin-top:6px">«Поступило» во всех сценариях одинаково: деньги считаются по платежам, а не по броням.</div>
+    <div class="note" style="margin-top:6px">«Поступило» в сценариях не меняется, потому что считается по платежам.</div>
   </section>
   <section>
-    <h2>Брони на проверке: что остаётся в каждом сценарии</h2>
-    <div class="legendrow"><span><span class="tag t-ok">оплачена</span> есть платёж, остаётся в сценарии «только оплаченные»</span><span><span class="tag t-rv">без платежа</span> уходит</span><span><span class="tag t-ex">конфликт не снят</span> оплачены обе пересекающиеся брони</span></div>
+    <h2>Спорные брони по сценариям</h2>
+    <div class="legendrow"><span><span class="tag t-ok">входит</span> есть платёж, а пересекающиеся брони не оплачены</span><span><span class="tag t-rv">не входит</span> платежа нет</span><span><span class="tag t-ex">конфликт не снят</span> оплачены обе пересекающиеся брони</span></div>
     <div id="cfNote" class="note" style="margin-bottom:8px"></div>
     <div class="tbl" style="max-height:520px"><table id="tConf"></table></div>
   </section>
   </div>
 
   <div class="page" data-page="err">
-  <div class="legendrow"><span><span class="tag t-ex">исключено</span> не в расчёте</span><span><span class="tag t-rv">на проверке</span> в расчёте, но пересекается с другой бронью или ota_fee &lt; 0</span><span><span class="tag t-q">вопрос</span> решение за финансами</span></div>
+  <div class="legendrow"><span><span class="tag t-ex">исключено</span> в расчёт не входит</span><span><span class="tag t-rv">на проверке</span> в расчёте, но даты пересекаются с другой бронью или ota_fee меньше нуля</span><span><span class="tag t-q">вопрос</span> правило должны подтвердить финансы</span></div>
   <section style="margin-top:0">
-    <h2>Брони в периоде: сверка начислений и поступлений</h2>
+    <h2>Сверка начисленного и поступившего по броням периода</h2>
     <div class="tabs" id="resTabs"></div>
     <div class="tbl" style="max-height:460px"><table id="tRes"></table></div>
   </section>
@@ -167,16 +168,25 @@ svg text{fill:var(--muted);font-size:10px}
 
   <section class="card method" style="margin-top:0">
     <h2>Финансовая логика</h2>
-    <p><b>Признание выручки — по ночам проживания</b>, как требует МСФО (IFRS) 15: проживание оказывается как услуга во времени. Для сравнения, по дате выезда gross сентября был бы 683 262 688 вместо 757 178 005, а 23 291 150 ушли бы в ноябрь.</p>
-    <p><b>Выручка и деньги — разные числа.</b> Начисления (accrual) привязаны к ночам проживания: доля брони в периоде = ночей в периоде / всего ночей; ночь — дата от check_in включительно до check_out не включая. Деньги (cash) считаются по payment_date. Платёж в ноябре за октябрьскую бронь в кэш октября не попадает, хотя выручка начислена.</p>
+    <h3>Когда признаётся выручка</h3>
+    <p>Выручка делится по ночам проживания, как требует МСФО (IFRS) 15. Если считать по дате выезда, gross сентября был бы 683 262 688 вместо 757 178 005, а 23 291 150 перешли бы в ноябрь.</p>
+    <h3>Начисления и деньги</h3>
+    <p>Доля брони в периоде равна числу её ночей в периоде, делённому на все ночи брони. Ночь считается от check_in включительно до check_out, не включая его. Деньги идут по payment_date, поэтому ноябрьский платёж за октябрьскую бронь не попадает в деньги октября, хотя выручка за октябрь начислена.</p>
     <p><code>Net booking = gross − refund</code> · <code>OTA fee = ota_fee × net / gross</code> · <code>Management fee = ставка × net</code> · <code>Owner balance (оценка) = net − OTA fee − management fee − расходы</code> · <code>К получению = net − OTA fee</code></p>
-    <p><b>Отмены и возвраты.</b> Все 12 отмен в данных имеют полный возврат: net = 0, management fee = 0. OTA fee по ним сторнируется пропорционально оставшейся сумме (допущение, вынесено в вопросы).</p>
-    <p><b>Комиссия УК.</b> Ставка из commission_rules по объекту и дате check_in (17%, для Bukit 20%). База — gross_booking_value: по правилу «OTA fees are separate» комиссия OTA её не уменьшает, а возврат уменьшает.</p>
-    <p><b>Расходы.</b> В начислениях все по expense_date, включая pending; в оттоке денег только paid.</p>
-    <p><b>Сверка с деньгами.</b> Платёж приходит уже за вычетом ota_fee, поэтому сравнивается с <code>net − OTA fee</code>, а не с gross. Где платёж есть, он совпадает до рупии; вся разница — брони без платежа.</p>
-    <p><b>Почему owner balance — оценка.</b> Нет начального сальдо и выплат собственнику, налогов, правил удержаний при отменах, курса валют, договорённости о том, какие расходы несёт собственник, и даты среза данных.</p>
-    <p><b>Правила качества данных.</b> Исключаются: дубли ID (остаётся первая строка), объекты, которых нет в properties, валюта не равна base_currency, возврат больше суммы или возврат при статусе confirmed. На проверке: пересечение дат на одной вилле, отрицательная ota_fee.</p>
-    <p><b>Три сценария для броней «на проверке».</b> «Учитывать все» — итог как в данных. «В конфликте — только оплаченные» — из броней на проверке остаются те, по которым есть платёж; если в паре не оплачена ни одна, уходят обе. «Не учитывать» — все брони на проверке убраны. Даты бронирования в данных нет, а платежи есть только у чётных ID, поэтому платёж — подсказка, а не доказательство: 13 пар, где оплачены обе брони, остаются в конфликте при любом сценарии.</p>
+    <h3>Отмены и возвраты</h3>
+    <p>У всех 12 отмен возврат полный, поэтому net и management fee по ним равны нулю. OTA fee уменьшается в той же доле, что и net, и тоже обнуляется. Удерживает ли OTA комиссию при отмене, нужно уточнить у финансов.</p>
+    <h3>Комиссия УК</h3>
+    <p>Ставка берётся из commission_rules по объекту и дате заезда: 17%, для вилл Bukit 20%. Считается от gross за вычетом возврата. В правилах указано «OTA fees are separate», поэтому комиссию OTA из базы не вычитаем.</p>
+    <h3>Расходы</h3>
+    <p>В начисления входят все расходы по expense_date, в том числе pending. В деньги идут только оплаченные.</p>
+    <h3>Сверка с деньгами</h3>
+    <p>Платёж приходит за вычетом ota_fee, поэтому сравниваем его с <code>net − OTA fee</code>. Где платёж есть, он совпадает до рупии. Вся разница приходится на брони без платежей.</p>
+    <h3>Почему owner balance оценка</h3>
+    <p>В данных нет начального сальдо, выплат собственнику, налогов, правил удержаний при отменах и курса валют. Неизвестно, какие расходы несёт собственник и на какую дату сделана выгрузка.</p>
+    <h3>Что исключается и что проверяется</h3>
+    <p>Исключаются дубли ID (остаётся первая строка), записи по объектам, которых нет в properties, брони в валюте, отличной от base_currency, и брони с возвратом больше суммы или с возвратом без отмены. На проверку попадают брони с пересечением дат на одной вилле и с отрицательной ota_fee.</p>
+    <h3>Три сценария для спорных броней</h3>
+    <p>«Все брони» берёт данные как есть. «Из спорных только оплаченные» оставляет спорные брони с платежом; если в паре не оплачена ни одна, уходят обе. «Без спорных броней» убирает их все. Платёж здесь только подсказка: даты бронирования нет, а платежи есть лишь у броней с чётными номерами. 13 пар, где оплачены обе брони, остаются в конфликте при любом варианте.</p>
   </section>
 
   <section class="card method">
@@ -270,14 +280,17 @@ svg text{fill:var(--muted);font-size:10px}
   </g>
 </svg>
 
-    <p><b>Повторный импорт без дублей.</b> Файл с тем же хешем содержимого не грузится повторно. В core запись определяется ключом (<code>source + reservation_id</code>, <code>payment_id</code>, <code>expense_id</code>) и пишется через upsert: более поздний updated_at создаёт новую версию, идентичная строка игнорируется.</p>
-    <p><b>Аудит изменений.</b> Raw не меняется и не удаляется. У строк в core есть load_id, valid_from и valid_to, поэтому можно восстановить данные на любую дату. Исправления вносятся отдельными корректировками с автором и причиной. Решения по карантину пишутся в журнал, закрытый месяц блокируется.</p>
-    <p><b>Разграничение доступа.</b> Финансы видят всё и решают по карантину. Операционная команда видит брони и расходы без итогов собственников. Собственник видит только свои виллы через row-level security по owner_id. Загрузка работает под сервисной учётной записью, ключи хранятся в secret manager.</p>
+    <h3>Повторный импорт без дублей</h3>
+    <p>Файл с тем же хешем повторно не загружается. Запись в core определяется ключом (<code>source + reservation_id</code>, <code>payment_id</code>, <code>expense_id</code>) и пишется через upsert. Если updated_at новее, появляется новая версия записи, одинаковая строка пропускается.</p>
+    <h3>Аудит изменений</h3>
+    <p>Raw-слой не меняется и не удаляется. У строк core есть load_id, valid_from и valid_to, по ним видно, как выглядели данные на любую дату. Исправления вносятся отдельными корректировками с автором и причиной, решения по карантину пишутся в журнал, закрытый месяц блокируется.</p>
+    <h3>Доступ</h3>
+    <p>Финансы видят всё и разбирают карантин. Операционная команда видит брони и расходы без итогов собственников. Собственник видит только свои виллы (row-level security по owner_id). Загрузка идёт под сервисной учётной записью, ключи лежат в secret manager.</p>
   </section>
 
   </div>
 
-  <section class="note" style="margin-top:14px">Прототип в рамках тестового задания на 2–3 часа: рабочее ядро расчёта, диагностика данных и схема дальнейшей системы. Ограничения, риски и следующие шаги описаны в README.</section>
+  <section class="note" style="margin-top:14px">Прототип к тестовому заданию, сделан за два-три часа. Ограничения и следующие шаги описаны в README.</section>
 </div>
 
 <script id="d-properties" type="text/csv">
@@ -700,10 +713,10 @@ function prepare(raw) {
     r.mgmt = r.rate * r.net;
     r.expected = r.net - r.otaEff;
     r.why = r.dup ? 'дубль ID' : r.badProp ? `объекта ${r.property_id} нет` : r.badCur ? `валюта ${r.currency}, курса нет` : r.badRefund ? 'refund больше gross при статусе ' + r.status : '';
-    if (r.dup) issue('reservations', r.reservation_id, r._row, 'Дубль', 'Повтор reservation_id; строка совпадает с первой', 'Исключено', 'Вторая копия удвоила бы выручку. Оставлена первая строка');
-    else if (r.badProp) issue('reservations', r.reservation_id, r._row, 'Некорректный ID', `Объекта ${r.property_id} нет в properties`, 'Исключено', 'Нельзя определить собственника и ставку комиссии');
-    else if (r.badCur) issue('reservations', r.reservation_id, r._row, 'Валюта', `Валюта ${r.currency} при base_currency ${propMap[r.property_id].base_currency}; сумма ${fmt(r.gross)} по масштабу похожа на IDR. Курса нет`, 'Исключено', 'Курса нет. Если это USD, бронь стоила бы около 70 млрд IDR и исказила бы итог; если IDR — это правка данных без подтверждения');
-    else if (r.badRefund) issue('reservations', r.reservation_id, r._row, 'Арифметика', `Статус ${r.status}, refund ${fmt(r.refund)} больше gross ${fmt(r.gross)} на ${fmt(r.refund - r.gross)}. Похоже на отмену с опечаткой в сумме`, 'Исключено', `Net был бы ${fmt(r.net)}, платежа нет. Считать отменой — правка данных без подтверждения`);
+    if (r.dup) issue('reservations', r.reservation_id, r._row, 'Дубль', 'Повтор reservation_id, строка совпадает с первой', 'Исключено', 'Вторая копия удвоила бы выручку, оставлена первая строка');
+    else if (r.badProp) issue('reservations', r.reservation_id, r._row, 'Некорректный ID', `Объекта ${r.property_id} нет в properties`, 'Исключено', 'Без объекта не понять, чья это вилла и какая ставка комиссии');
+    else if (r.badCur) issue('reservations', r.reservation_id, r._row, 'Валюта', `Валюта ${r.currency}, а у объекта ${propMap[r.property_id].base_currency}. Сумма ${fmt(r.gross)} по размеру похожа на рупии, курса в данных нет`, 'Исключено', 'Если это доллары, бронь стоила бы около 70 млрд IDR и перекосила бы весь итог. Если рупии, пришлось бы править данные без подтверждения');
+    else if (r.badRefund) issue('reservations', r.reservation_id, r._row, 'Арифметика', `Статус ${r.status}, но refund ${fmt(r.refund)} больше gross ${fmt(r.gross)} на ${fmt(r.refund - r.gross)}. Похоже на отмену с опечаткой в сумме`, 'Исключено', `Net получился бы ${fmt(r.net)}, платежа нет. Считать её отменой значит править данные без подтверждения`);
   }
   for (const r of R) {
     r.partners = [];
@@ -711,15 +724,15 @@ function prepare(raw) {
       r.partners = R.filter(o => o !== r && o.base && o.status !== 'cancelled' && o.property_id === r.property_id && o.ci < r.co && o.co > r.ci).map(o => o.reservation_id);
     r.review = r.base && (r.partners.length > 0 || r.negOta);
     if (r.review) r.why = [r.partners.length ? 'пересекается с ' + r.partners.join(', ') : '', r.negOta ? 'ota_fee < 0' : ''].filter(Boolean).join('; ');
-    if (r.base && r.negOta) issue('reservations', r.reservation_id, r._row, 'Арифметика', `Отрицательная ota_fee ${fmt(r.ota)}; поступление больше gross`, 'На проверке', `Влияние ${fmt(-r.ota)} IDR, платёж сходится с такой арифметикой — бронь оставлена в расчёте`);
+    if (r.base && r.negOta) issue('reservations', r.reservation_id, r._row, 'Арифметика', `ota_fee ${fmt(r.ota)}, меньше нуля, поэтому платёж больше gross`, 'На проверке', `Разница всего ${fmt(-r.ota)} IDR, и платёж с ней сходится, поэтому бронь в расчёте`);
     if (r.partners.length) issue('reservations', r.reservation_id, r._row, 'Пересечение дат',
       `${r.property_id} ${r.check_in} → ${r.check_out} пересекается с ${r.partners.join(', ')}` + (r.status === 'modified' ? '. Статус modified без ссылки на исходную бронь' : ''), 'На проверке',
-      'Даты бронирования нет, поэтому какая бронь настоящая, не определить. Оставлена в расчёте; итог без неё — на вкладке «Сценарии»');
+      'Даты бронирования в выгрузке нет, поэтому неясно, какая бронь настоящая. Бронь в расчёте, итог без неё на вкладке «Сценарии»');
   }
   const direct = R.filter(r => r.base && r.channel === 'Direct' && r.ota > 0).length;
-  if (direct) issue('reservations', 'Direct', '', 'Логика', `У ${direct} прямых броней заполнена ota_fee 12–17%. Это комиссия эквайринга или ошибка?`, 'Вопрос', 'Платёж по ним тоже приходит за вычетом этой суммы, поэтому она считается как OTA fee');
+  if (direct) issue('reservations', 'Direct', '', 'Логика', `У ${direct} прямых броней заполнена ota_fee, от 12 до 17% суммы. Это эквайринг или ошибка выгрузки?`, 'Вопрос', 'Платёж по ним тоже приходит за вычетом этой суммы, поэтому считаем её как OTA fee');
   const cancRows = R.filter(r => r.base && r.status === 'cancelled' && r.ota > 0), cancOta = cancRows.length;
-  if (cancOta) issue('reservations', 'cancelled', '', 'Логика', `У ${cancOta} отмен заполнена ota_fee при полном возврате. Считаю комиссию сторнированной; удерживает ли её OTA?`, 'Вопрос', `Если OTA удерживает комиссию, OTA fees вырастут на ${fmt(cancRows.reduce((a, r) => a + r.ota, 0))}`);
+  if (cancOta) issue('reservations', 'cancelled', '', 'Логика', `У ${cancOta} отмен с полным возвратом заполнена ota_fee. Считаю, что OTA вернула комиссию. Так ли это?`, 'Вопрос', `Если OTA оставляет комиссию себе, OTA fees вырастут на ${fmt(cancRows.reduce((a, r) => a + r.ota, 0))}`);
 
   const pseen = new Set();
   for (const p of P) {
@@ -729,21 +742,21 @@ function prepare(raw) {
     p.zero = p.amt <= 0;
     p.noRes = !R.some(r => r.reservation_id === p.reservation_id);
     p.inc = !(p.dup || p.badProp || p.zero || p.noRes) && p.status === 'received';
-    if (p.dup) issue('payments', p.payment_id, p._row, 'Дубль', 'Повтор payment_id, строка идентична предыдущей', 'Исключено', 'Вторая копия удвоила бы поступление');
-    else if (p.badProp) issue('payments', p.payment_id, p._row, 'Некорректный ID', `Объекта ${p.property_id} нет в properties (бронь ${p.reservation_id})`, 'Исключено', 'Нельзя отнести платёж к вилле и собственнику');
-    else if (p.noRes) issue('payments', p.payment_id, p._row, 'Некорректный ID', `Брони ${p.reservation_id} нет`, 'Исключено', 'Не с чем сверить платёж');
-    else if (p.zero) issue('payments', p.payment_id, p._row, 'Арифметика', `Сумма 0 со статусом received (бронь ${p.reservation_id})`, 'Исключено', 'Денег не поступило, хотя статус received. На сумму поступлений не влияет');
+    if (p.dup) issue('payments', p.payment_id, p._row, 'Дубль', 'Повтор payment_id, строка совпадает с предыдущей', 'Исключено', 'Вторая копия удвоила бы поступление');
+    else if (p.badProp) issue('payments', p.payment_id, p._row, 'Некорректный ID', `Объекта ${p.property_id} нет в properties (бронь ${p.reservation_id})`, 'Исключено', 'Платёж не отнести ни к вилле, ни к собственнику');
+    else if (p.noRes) issue('payments', p.payment_id, p._row, 'Некорректный ID', `Брони ${p.reservation_id} нет в reservations`, 'Исключено', 'Платёж не с чем сверить');
+    else if (p.zero) issue('payments', p.payment_id, p._row, 'Арифметика', `Сумма 0 при статусе received (бронь ${p.reservation_id})`, 'Исключено', 'Денег нет, хотя статус received. На сумму поступлений не влияет');
   }
   const lastUpd = R.reduce((m, r) => r.updated_at > m ? r.updated_at : m, '');
   const future = P.filter(p => p.inc && p.payment_date > lastUpd).length;
-  if (future) issue('payments', 'даты', '', 'Даты', `Последний updated_at в бронях ${lastUpd}, но ${future} платежей received датированы позже. Какая дата среза?`, 'Вопрос', 'От даты среза зависит, какие платежи относятся к периоду');
+  if (future) issue('payments', 'даты', '', 'Даты', `Последний updated_at в бронях ${lastUpd}, а ${future} платежей received датированы позже. На какую дату сделана выгрузка?`, 'Вопрос', 'От даты выгрузки зависит, какие платежи относятся к периоду');
   const paidRes = new Set(P.filter(p => p.inc || p.zero).map(p => p.reservation_id));
   const unpaid = R.filter(r => r.base && r.status !== 'cancelled' && !paidRes.has(r.reservation_id)).length;
-  issue('payments', 'полнота', '', 'Полнота', `У ${unpaid} действующих броней нет ни одной строки в payments (это все нечётные ID). Выгрузка неполная?`, 'Вопрос', 'Весь разрыв между начисленным и поступившим по броням приходится на них; где платёж есть, он сходится до рупии');
+  issue('payments', 'полнота', '', 'Полнота', `У ${unpaid} действующих броней нет ни одного платежа, у всех нечётные номера. Выгрузка неполная?`, 'Вопрос', 'На них приходится вся разница между начисленным и поступившим. Где платёж есть, он совпадает до рупии');
 
   for (const e of E) {
     e.amt = +e.amount; e.inc = !!propMap[e.property_id];
-    if (!e.inc) issue('expenses', e.expense_id, e._row, 'Некорректный ID', `Объекта ${e.property_id} нет в properties, ${fmt(e.amt)} IDR`, 'Исключено', 'Нельзя отнести расход к вилле и собственнику');
+    if (!e.inc) issue('expenses', e.expense_id, e._row, 'Некорректный ID', `Объекта ${e.property_id} нет в properties, ${fmt(e.amt)} IDR`, 'Исключено', 'Расход не отнести ни к вилле, ни к собственнику');
   }
   const recv = {};
   for (const p of P) if (p.inc) recv[p.reservation_id] = (recv[p.reservation_id] || 0) + p.amt;
@@ -811,8 +824,8 @@ function render() {
     k('Поступило', tot.cash, 'по дате платежа') +
     k('Поступило − начислено', tot.cash - tot.accr, tot.accr ? `поступило ${Math.round(tot.cash / tot.accr * 100)}% от начисленного` : '');
   const rv = rows.filter(r => r.review && r.inc).length;
-  const sName = SCEN.find(x => x[0] === f.review)[1].toLowerCase();
-  $('reviewNote').innerHTML = `<div class="warnline">Сценарий: ${sName}.${rv ? ` В итогах ${rv} броней «на проверке».` : ''} Owner balance от ${mln(sc.none.owner)} до ${mln(sc.all.owner)} в зависимости от сценария — <a href="#scen" data-go="scen">сравнить на вкладке «Сценарии»</a>.</div>`;
+  const modeText = {all: `В итоге все брони, в том числе ${rv} на проверке.`, paid: `Из спорных броней в итоге только оплаченные: ${rv}.`, none: 'Спорные брони в итог не входят.'}[f.review];
+  $('reviewNote').innerHTML = `<div class="warnline">${modeText} В зависимости от того, какие спорные брони настоящие, owner balance от ${mln(sc.none.owner)} до ${mln(sc.all.owner)}. <a href="#scen" data-go="scen">Сравнить сценарии</a></div>`;
 
   // waterfall
   const max = Math.max(tot.gross, 1), W = v => (v / max * 100).toFixed(2) + '%';
@@ -852,7 +865,7 @@ function render() {
   const cnt = g => g === 'все' ? rows.length : rows.filter(r => recon(r) === g).length;
   $('resTabs').innerHTML = groups.map(g => `<button class="chip ${g === resTab ? 'on' : ''}" data-g="${g}">${g} · ${cnt(g)}</button>`).join('');
   $('resTabs').querySelectorAll('button').forEach(b => b.onclick = () => { resTab = b.dataset.g; render(); });
-  const tagOf = r => !r.base ? `<span class="tag t-ex">исключена</span> ${r.why}` : !r.inc ? `<span class="tag t-rv">убрана сценарием</span> ${f.review === 'paid' ? 'нет платежа; ' : ''}${r.why}` : r.review ? `<span class="tag t-rv">на проверке</span> ${r.why}` : '<span class="tag t-ok">ok</span>';
+  const tagOf = r => !r.base ? `<span class="tag t-ex">исключена</span> ${r.why}` : !r.inc ? `<span class="tag t-rv">не в этом сценарии</span> ${f.review === 'paid' ? 'нет платежа; ' : ''}${r.why}` : r.review ? `<span class="tag t-rv">на проверке</span> ${r.why}` : '<span class="tag t-ok">ok</span>';
   const rr = rows.filter(r => resTab === 'все' || recon(r) === resTab).sort((a, b) => a.property_id.localeCompare(b.property_id) || a.ci - b.ci);
   $('tRes').innerHTML = `<thead><tr><th>Бронь</th><th>Объект</th><th>Даты</th><th>Статус</th><th>Канал</th><th class="num">Gross</th><th class="num">Refund</th><th class="num">OTA fee</th><th class="num">Mgmt fee</th><th class="num">Ожидается</th><th class="num">Получено</th><th class="num">Разница</th><th>Сверка</th><th>Данные и причина</th></tr></thead><tbody>` +
     rr.map(r => `<tr class="${!r.base ? 'r-ex excl' : !r.inc ? 'excl' : r.review ? 'r-rv' : ''}"><td>${r.reservation_id}</td><td>${r.property_id}</td><td>${r.check_in.slice(5)} → ${r.check_out.slice(5)}</td><td>${r.status}</td><td>${r.channel}</td>` +
@@ -873,14 +886,14 @@ function render() {
 
 // ---------- вкладка «Сценарии» ----------
 const SCEN = [
-  ['all', 'Все брони', 'Брони на проверке учитываются как есть в данных'],
-  ['paid', 'В конфликте — только оплаченные', 'Из броней на проверке остаются те, по которым есть платёж. Если в паре не оплачена ни одна, уходят обе'],
-  ['none', 'Без броней на проверке', 'Все брони с пересечением дат и отрицательной ota_fee убраны']];
+  ['all', 'Все брони', 'Спорные брони считаются как есть'],
+  ['paid', 'Из спорных только оплаченные', 'Из спорных броней остаются те, по которым есть платёж. Если в паре не оплачена ни одна, уходят обе'],
+  ['none', 'Без спорных броней', 'Спорные брони не считаются']];
 
 function renderScen(f, sc) {
   const pct = (v, b) => b ? (v >= b ? '+' : '−') + Math.abs(Math.round((v - b) / b * 100)) + '%' : '';
   $('scenCards').innerHTML = SCEN.map(([m, name, desc]) => `<div class="card scen ${m === f.review ? 'on' : ''}">
-    <div class="d">${name}${m === f.review ? ' · выбран в фильтре' : ''}</div>
+    <div class="d">${name}${m === f.review ? ' · выбран сейчас' : ''}</div>
     <div class="v">${fmt(sc[m].owner)}</div>
     <div class="d">owner balance${m === 'all' ? '' : ` · ${pct(sc[m].owner, sc.all.owner)} к «все брони»`}</div>
     <div class="note" style="margin-top:8px">${desc}. Броней в расчёте: ${sc[m].n}.</div></div>`).join('');
@@ -897,14 +910,14 @@ function renderScen(f, sc) {
     .sort((a, b) => a.property_id.localeCompare(b.property_id) || a.ci - b.ci);
   const stuck = r => r.received > 0 && r.partners.some(id => byId[id] && byId[id].received > 0);
   const kept = list.filter(r => r.received > 0).length, st = list.filter(stuck).length;
-  $('cfNote').innerHTML = list.length ? `В периоде ${list.length} броней на проверке. В сценарии «только оплаченные» остаются ${kept}, уходят ${list.length - kept}. У ${st} оплачена и пересекающаяся бронь: платёж здесь не помогает, нужен channel manager.` : 'В выбранном периоде и объекте броней на проверке нет.';
+  $('cfNote').innerHTML = list.length ? `Спорных броней в периоде: ${list.length}. С платежом ${kept}, они остаются в варианте «из спорных только оплаченные», остальные ${list.length - kept} уходят. Оплаченных броней, у которых оплачена и пересекающаяся: ${st}. Здесь платёж ничего не решает, нужен channel manager.` : 'В выбранном периоде и объекте спорных броней нет.';
   const yn = v => v ? '<span class="yes">да</span>' : '<span class="no">нет</span>';
   $('tConf').innerHTML = `<thead><tr><th>Бронь</th><th>Объект</th><th>Даты</th><th>Статус</th><th>Канал</th><th class="num">Gross</th><th>Платёж</th><th>Пересекается с</th><th>Все</th><th>Оплаченные</th><th>Без проверки</th><th>Итог</th></tr></thead><tbody>` +
     list.map(r => { const paid = r.received > 0, x = stuck(r);
       return `<tr class="${x ? 'r-ex' : paid ? '' : 'r-rv'}"><td>${r.reservation_id}</td><td>${r.property_id}</td><td>${r.check_in.slice(5)} → ${r.check_out.slice(5)}</td><td>${r.status}</td><td>${r.channel}</td>` +
         `<td class="num">${fmt(r.gross)}</td><td>${paid ? `<span class="tag t-ok">${fmt(r.received)}</span>` : '<span class="tag t-rv">без платежа</span>'}</td>` +
         `<td class="wrap" style="min-width:160px">${r.partners.length ? r.partners.map(paidMark).join(', ') : (r.negOta ? 'ota_fee &lt; 0' : '')}</td>` +
-        `<td>${yn(true)}</td><td>${yn(paid)}</td><td>${yn(false)}</td><td>${x ? '<span class="tag t-ex">конфликт не снят</span>' : paid ? '<span class="tag t-ok">остаётся</span>' : '<span class="tag t-rv">уходит</span>'}</td></tr>`; }).join('') + '</tbody>';
+        `<td>${yn(true)}</td><td>${yn(paid)}</td><td>${yn(false)}</td><td>${x ? '<span class="tag t-ex">конфликт не снят</span>' : paid ? '<span class="tag t-ok">входит</span>' : '<span class="tag t-rv">не входит</span>'}</td></tr>`; }).join('') + '</tbody>';
 }
 
 // ---------- вкладки ----------
