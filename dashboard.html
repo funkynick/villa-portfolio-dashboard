@@ -137,7 +137,7 @@ svg text{fill:var(--muted);font-size:10px}
   <section>
     <h2>Показатели по сценариям</h2>
     <div class="tbl"><table id="tScen"></table></div>
-    <div class="note" style="margin-top:6px">«Поступило» во всех сценариях одно и то же: деньги считаются по платежам, а платежи по исключённым броням реальны. Поэтому в сценарии «без спорных броней» поступило может быть больше начисленного. «Ночей продано» включает ночи, проданные дважды, поэтому загрузку по этой строке считать нельзя.</div>
+    <div class="note" style="margin-top:6px">«Поступило» во всех сценариях одно и то же: деньги считаются по платежам, а платежи по исключённым броням реальны. Поэтому в сценарии «без спорных броней» поступило может быть больше начисленного. «Ночей продано» считается без отменённых броней, но включает ночи, проданные дважды, поэтому загрузку по этой строке считать нельзя.</div>
   </section>
   <section>
     <h2>Спорные брони по сценариям</h2>
@@ -796,7 +796,7 @@ function compute(D, f) {
     r.inPeriod = n > 0;
     if (!r.inc) { if (r.inPeriod && pf(r.property_id)) rows.push(r); continue; }
     const sh = r.nights ? n / r.nights : 0;
-    const add = t => { t.gross += r.gross*sh; t.refund += r.refund*sh; t.net += r.net*sh; t.ota += r.otaEff*sh; t.mgmt += r.mgmt*sh; t.nights += n; if (n && r.review) t.review++; };
+    const add = t => { t.gross += r.gross*sh; t.refund += r.refund*sh; t.net += r.net*sh; t.ota += r.otaEff*sh; t.mgmt += r.mgmt*sh; if (r.status !== 'cancelled') t.nights += n; if (n && r.review) t.review++; };
     add(byProp[r.property_id]);
     if (pf(r.property_id)) { add(tot); if (n) rows.push(r); }
   }
