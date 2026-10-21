@@ -6,7 +6,19 @@
 test.nkokov.online {
 	import /srv/sites/villa-portfolio-dashboard/deploy/auth.caddy
 
-	root * /srv/sites/villa-portfolio-dashboard
+	# access log: one JSON line per request with client IP, user agent and status.
+	# Lives in the caddy-data volume (/data); Authorization and Cookie headers are redacted by Caddy.
+	# Read it with: docker exec postone-prod-caddy-1 cat /data/logs/test.nkokov.online.access.log
+	log {
+		output file /data/logs/test.nkokov.online.access.log {
+			roll_size 10MiB
+			roll_keep 10
+			roll_keep_for 2160h
+		}
+		format json
+	}
+
+	root */srv/sites/villa-portfolio-dashboard
 	encode zstd gzip
 
 	# never serve dotfiles (.git) or the deploy folder
