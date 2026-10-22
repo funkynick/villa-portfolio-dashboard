@@ -18,7 +18,7 @@ test.nkokov.online {
 		format json
 	}
 
-	root */srv/sites/villa-portfolio-dashboard
+	root * /srv/sites/villa-portfolio-dashboard
 	encode zstd gzip
 
 	# never serve dotfiles (.git) or the deploy folder
